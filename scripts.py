@@ -24,13 +24,17 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
     snap_id_str = binned_clusters[current_cluster_number][1]   # id of photon list
         
     t = Table.read("../data/eROSITA_30.0x30.0/Phox/phlist_"+snap_id_str+".fits", hdu=2)
+      
+    #t1 = Table.read("../data/eROSITA_30.0x30.0/Phox/AGNphlist_"+snap_id_str+".fits", hdu=2)
+    
+    #t = vstack([t, t1])
     
     SLICE = t.to_pandas()        # for photons extraction
     SLICE1 = t.to_pandas()       # for drawing
     SLICE2 = t.to_pandas()       # for center searching if it is not from table
     SLICE3 = t.to_pandas()       # for rescaling SLICE2
     
-    R = r * R_500_rescaled
+    R = r * R_500_fid
         
     AREA = np.pi*R**2*3600   # min2
         
@@ -49,13 +53,13 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         #setting area and resolution for searching for center
     
         ang_res = 4
-        halfsidelength = 3                    # in R500
-        half_size = halfsidelength*R_500_rescaled   # in degrees
+        halfsidelength = 10                    # in R500
+        half_size = halfsidelength*R_500_fid   # in degrees
         
         if (current_cluster_number != 13334) and (current_cluster_number != 18589):
-            hs4s = half_size/3
+            hs4s = half_size/3/(halfsidelength/5)
         else:
-            hs4s = half_size/1
+            hs4s = half_size/1/(halfsidelength/5)
             
         # making 2D histogram with side length 2*half_size with center (RA_c, DEC_c) without drawing
                 
@@ -103,22 +107,19 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         
         if delete_superfluous:
             
-            VICINITY = np.where( (clusters_all["x_pix"]*30-5 - c_x_1)**2 + (clusters_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2 )
+            VICINITY = np.where( ((clusters_all["x_pix"]*30-5 - c_x_1)**2 + (clusters_all["y_pix"]*30-5 - c_y_1)**2 < half_size**2) & ( np.abs(clusters_all["z_true"] - ztrue) < 0.017141 ) )
+            
+            #print(VICINITY)
+            
+            vclu = clusters_all.loc[VICINITY]
             
             for clcl in VICINITY:
             
                 vicinity_current = clusters_all.loc[clcl]
-                
-                #print(vicinity_current["z_true"].values - ztrue )
-                #print(vicinity_current["z_true"].values)
-                #papap = np.where(np.abs(vicinity_current["z_true"].values - ztrue) < 0.017141)
-                #print(papap)
-                
-                #vicinity_current = clusters_all.loc[papap]
-                
+               
                 vicenter = list(zip(vicinity_current["x_pix"].values*30-5, vicinity_current["y_pix"].values*30-5))
         
-                #print(vicenter)
+                print(vicenter)
         
         # deleting bright regions           
         
@@ -386,7 +387,7 @@ def draw_84_panels(del_br_reg):
 
     NNN = 84
     
-    size = 6
+    #size = 6
 
     #plt.figure(figsize=((size)*7+6*3, 5*12+11*2.5))
     plt.tight_layout()
@@ -397,3 +398,70 @@ def draw_84_panels(del_br_reg):
         
         pho_list = extract_photons_from_cluster(cl_num, r = 1, draw=True, delete_bright_regions=del_br_reg)
 
+
+def calc_l_T(T, T_left, T_right, Xplot=False):
+  
+    x.Xset.chatter = 0
+    x.AllData.clear()
+    x.AllData.removeDummyrsp()
+    x.AllData.dummyrsp(lowE=0.1, highE=10.0, nBins=1024)
+    x.Xset.addModelString("APEC_TRACE_ABUND", "0")
+
+    if Xplot:
+        x.Plot.device = '/xs'
+    else:
+        x.Plot.device = '/null'
+    
+    expo = 40000
+    Ab = 0.3
+    Norm = 1
+    z = 0.0
+    nH = 0.01
+    
+    mod = x.Model('phabs*apec')
+    mod.setPars(nH, T, Ab, z, Norm)
+    
+    x.Plot("model")
+    x.Plot.xAxis = "keV"
+    x.AllModels.show()
+    
+    x.AllModels.calcFlux(f"{T_left} {T_right}")
+    flx1 = x.AllModels(1).flux[0]   # ergs/cm^2
+    flx2 = x.AllModels(1).flux[3]   # photons 
+    
+    RMF_NAME = '../erosita/erosita_pirmf_v20210719.rmf'
+    ARF_NAME = '../erosita/tm1_arf_open_000101v02.fits'
+    
+    fs = x.FakeitSettings(response = RMF_NAME, 
+                               arf = ARF_NAME, 
+                        background = '', 
+                          exposure = expo, 
+                        correction = '', 
+                      backExposure = '', 
+                          fileName = 'fakeit.pha')
+    x.AllData.fakeit(nSpectra = 1, 
+                     settings = fs, 
+                   applyStats = True,
+                   filePrefix = "",
+                      noWrite = True)
+
+    x.AllData.ignore(f"**-{T_left} {T_right}-**")             # IMPORTANT !
+    x.AllData.show()
+    #x.AllModels.setEnergies("reset")
+    
+    x.Plot("data")
+    x.Plot.xAxis = "keV"
+    #xVals = x.Plot.x()
+    #yVals = x.Plot.y()
+    
+    cr = x.AllData(1).rate[2]
+    
+#    ens = x.AllData(1).energies
+#    E_i = np.zeros(len(ens))
+#    dE = np.zeros(len(ens))   
+#    for i in ens:
+#        dE[ens.index(i)] = i[1]-i[0]
+#        E_i[ens.index(i)] = (i[0]+i[1])/2    
+#    s_i = x.AllData(1).values
+    
+    return flx1, flx2, cr #, np.dot(xVals, yVals)/sum(yVals), np.dot(E_i, s_i)/cr
