@@ -19,6 +19,8 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
     
     R_500_rescaled = R_500/D_A.value*180/np.pi # degrees
     
+    D_A = 343000
+    
     R_500_fid = 1000/343000*180/np.pi   # degrees
     
     snap_id_str = binned_clusters[current_cluster_number][1]   # id of photon list
@@ -35,6 +37,8 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
     SLICE3 = t.to_pandas()       # for rescaling SLICE2
     
     R = r * R_500_fid
+    
+    print(R, R*60)
         
     AREA = np.pi*R**2*3600   # min2
         
@@ -53,13 +57,13 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         #setting area and resolution for searching for center
     
         ang_res = 4
-        halfsidelength = 10                    # in R500
-        half_size = halfsidelength*R_500_fid   # in degrees
+        halfsidelength = 5                    # in R500
+        half_size = halfsidelength*R   # in degrees
         
         if (current_cluster_number != 13334) and (current_cluster_number != 18589):
-            hs4s = half_size/3/(halfsidelength/5)
+            hs4s = half_size/3/(halfsidelength/3)
         else:
-            hs4s = half_size/1/(halfsidelength/5)
+            hs4s = half_size/1/(halfsidelength/3)
             
         # making 2D histogram with side length 2*half_size with center (RA_c, DEC_c) without drawing
                 
@@ -119,7 +123,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
                
                 vicenter = list(zip(vicinity_current["x_pix"].values*30-5, vicinity_current["y_pix"].values*30-5))
         
-                print(vicenter)
+                #print(vicenter)
         
         # deleting bright regions           
         
@@ -319,9 +323,11 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         
         plt.scatter(RA_c, DEC_c, color='magenta', label = 'Catalogue')
         plt.scatter(cntr[0], cntr[1], color='orangered', label = 'Centroid')
+        
+        if delete_superfluous:
                                                         
-        for vv in vicenter:
-            plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=7)
+            for vv in vicenter:
+                plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=7)
                         
         #plt.gca().add_patch(plt.Circle((RA_c, DEC_c), R_vir, color='dodgerblue', linestyle="--", lw=3, fill = False))
         plt.gca().add_patch(plt.Circle(cntr, R, color='orangered', linestyle="--", lw=3, fill = False))
