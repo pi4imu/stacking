@@ -19,7 +19,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
     
     R_500_rescaled = R_500/D_A.value*180/np.pi # degrees
     
-    D_A = 343000
+    # D_A = 343000
     
     R_500_fid = 1000/343000*180/np.pi   # degrees
     
@@ -36,9 +36,10 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
     SLICE2 = t.to_pandas()       # for center searching if it is not from table
     SLICE3 = t.to_pandas()       # for rescaling SLICE2
     
-    R = r * R_500_fid
+    R = r * R_500_rescaled
     
-    print(R, R*60)
+    #print(R_500_fid*60)
+    #print(R_500_rescaled*60)
         
     AREA = np.pi*R**2*3600   # min2
         
@@ -107,186 +108,30 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         df = SLICE[SLICE['check'] == True]
         dddfff = df.drop("check", axis=1)
         
-        # deleting less massive haloes
+    # deleting less massive haloes
+    
+    if delete_superfluous:
         
-        if delete_superfluous:
-            
-            VICINITY = np.where( ((clusters_all["x_pix"]*30-5 - c_x_1)**2 + (clusters_all["y_pix"]*30-5 - c_y_1)**2 < half_size**2) & ( np.abs(clusters_all["z_true"] - ztrue) < 0.017141 ) )
-            
-            #print(VICINITY)
-            
-            vclu = clusters_all.loc[VICINITY]
-            
-            for clcl in VICINITY:
-            
-                vicinity_current = clusters_all.loc[clcl]
-               
-                vicenter = list(zip(vicinity_current["x_pix"].values*30-5, vicinity_current["y_pix"].values*30-5))
+        VICINITY = np.where( ((clusters_all["x_pix"]*30-5 - c_x_1)**2 + (clusters_all["y_pix"]*30-5 - c_y_1)**2 < half_size**2) & ( np.abs(clusters_all["z_true"] - ztrue) < 0.017141 ) )
         
-                #print(vicenter)
+        #print(VICINITY)
         
-        # deleting bright regions           
+        vclu = clusters_all.loc[VICINITY]
         
-        if delete_bright_regions:
+        for clcl in VICINITY:
         
-            number_of_unfiltered_photons = len(dddfff)
-        
-            # recalculate nmhg relative to centroid
+            vicinity_current = clusters_all.loc[clcl].drop(current_cluster_number)
             
-            SLICE3["what"] = np.where( (np.abs(SLICE3["RA"]-c_x_1) < half_size) & (np.abs(SLICE3["DEC"]-c_y_1) < half_size),
-                                      True, False)
-            whattodraw = SLICE3[SLICE3['what'] == True]
-            whattodraw = whattodraw.drop("what", axis=1)
-            nmhg, _, _ = np.histogram2d(whattodraw["RA"], whattodraw["DEC"], 
-                                        bins=int(2*half_size*3600/ang_res),
-                                        range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
-                                                        (cntr[1]-half_size, cntr[1]+half_size)]))            
-            
-            #fltr = Tophat2DKernel(2)
-            fltr = Gaussian2DKernel(1)
-            nmhg = convolve_fft(nmhg, fltr) 
-
-            # some magic ...
-            
-            #shift = [int((RA_c-cntr[0]+half_size)*3600/ang_res), int((DEC_c-cntr[1]+half_size)*3600/ang_res)]
-            shift = [int((half_size)*3600/ang_res), int((half_size)*3600/ang_res)]
-            c1 = shift 
-                       
-            nmhg1 = kruzhok(int(R*3600/ang_res), c1, nmhg, int(R*3600/ang_res)+1)[0]
-  
-            if draw_additional:
-                
-                plt.show()
-            
-                # initial plot in terms of pixels and only circle of R500
-        
-                plt.figure(figsize=(12,5))
-                plt.subplot(121)
-                plt.title("nmhg")
-                plt.imshow(np.rot90(nmhg), norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1), origin='upper')
-                plt.scatter(c1[0], c1[1], color='orangered')
-                plt.gca().add_patch(plt.Circle(c1, int(R*3600/ang_res), color='orangered', linestyle="--", lw=3, fill = False))
-                plt.colorbar(fraction=0.046, pad=0.04)
-                plt.subplot(122)
-                plt.title("nmhg1, R = "+str(int(R*3600/ang_res))+" pixels")
-                plt.imshow(np.rot90(nmhg1), norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1), origin='upper')
-                plt.gca().add_patch(plt.Circle((int(R*3600/ang_res), int(R*3600/ang_res)), 
-                                    int(R*3600/ang_res), color='orangered', linestyle="--", lw=3, fill = False))  
-                plt.colorbar(fraction=0.046, pad=0.04)
-                plt.show()
-            
-            # searching for cutoff value in one pixel            
-            
-            threshold = 0.01
-            
-            beeens = np.geomspace(1, np.max(nmhg1.flatten()), 50)
-            amount_in_bin, bin_borders = np.histogram(nmhg1.flatten(), bins = beeens)
-            bin_centers = (bin_borders[:-1]+bin_borders[1:])/2
-            cumulative = [sum(amount_in_bin[:i]) for i in range(0, len(amount_in_bin))]
-            number_cutoff = bin_centers[np.argmin(np.abs(cumulative-cumulative[-1]*threshold))]
-            index_cutoff = list(bin_centers).index(number_cutoff)
-            threshold_new = sum(amount_in_bin[:index_cutoff]) / cumulative[-1]
+            D_A_ = FlatLambdaCDM(H0=100*0.704, Om0=0.272).angular_diameter_distance(vicinity_current["z_true"])*1000 # kpc
+            R_500_ = vicinity_current["R500"]*0.704
+            R_500_s = R_500_/D_A_*180/np.pi # degrees
            
-            if draw_additional:
+            vicenter = list(zip(vicinity_current["x_pix"].values*30-5, 
+                                vicinity_current["y_pix"].values*30-5, 
+                                R_500_s))
             
-                plt.figure(figsize=(13,5))
-                plt.subplot(121)
-                plt.hist(nmhg1.flatten(), bins = beeens)
-                plt.xlabel(f"Number of photons in {ang_res}''$\\times${ang_res}'' bin")
-                plt.ylabel("Amount of such bins")
-                plt.yscale("log")
-                plt.xscale("log")
-                plt.title("Flattened histogram for upper right image")
-                plt.subplot(122)
-                plt.scatter(bin_centers, cumulative)
-                plt.xlabel(f"Number of photons in {ang_res}''$\\times${ang_res}'' bin")
-                plt.ylabel("Cumulative distribution")
-                plt.yscale("log")
-                plt.xscale("log")         
-                plt.title(f"$x$-values are added up until their sum\nis right below {threshold*100:.0f} % cutoff")    
-                plt.axhline(cumulative[-1], ls='-.', color='green', label="Total sum")
-                plt.axhline(cumulative[-1]*threshold, ls='-.', color='red', label=f'Total sum $\\times$ {threshold}')
-                plt.axvline(number_cutoff, ls='--', color='red', 
-                            label=f'Cutoff at\nnumber = {number_cutoff:.2f};\n{threshold_new*100:.2f}% reached')
-                plt.legend(loc=4)
-                plt.subplot(121)
-                plt.axvline(number_cutoff, ls='--', color='red')
-                #plt.tight_layout()
-                plt.subplots_adjust()                 
-                plt.show()
-                        
-
-            # making masks and applying them to images
-            
-            nmhg_radial = nmhg
-            nmhg1_reserve = nmhg1
-            
-            filter_mask = nmhg <= number_cutoff
-            nmhg = nmhg*filter_mask
-            
-            filter_mask1 = nmhg1 <= number_cutoff
-            nmhg1 = nmhg1*filter_mask1
-            
-            #plt.imshow(np.rot90(filter_mask1))
-            #plt.show()            
-            
-            if draw_additional:
-            
-                plt.figure(figsize=(11,5))
-                plt.subplot(121)
-                plt.title("nmhg1 (filtered)")
-                plt.imshow(np.rot90(nmhg1), norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1), origin='upper')
-                plt.colorbar(fraction=0.046, pad=0.04)
-                plt.subplot(122)
-                plt.title("nmhg (filtered)")
-                plt.imshow(np.rot90(nmhg), norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1), origin='upper')
-                plt.colorbar(fraction=0.046, pad=0.04)
-                plt.show()
-            
-            dddfff["RA_pix"] =  (dddfff["RA"]  - cntr[0] + R)*3600/ang_res # - 1
-            dddfff["DEC_pix"] = (dddfff["DEC"] - cntr[1] + R)*3600/ang_res # - 1
-            
-            dddfff["RA_pix"] = dddfff["RA_pix"].astype(int)
-            dddfff["DEC_pix"] = dddfff["DEC_pix"].astype(int)
-            
-            dddfff["stay"] = filter_mask1[dddfff["RA_pix"], dddfff["DEC_pix"]]
-            dddfff = dddfff[dddfff["stay"] == True]
-                        
-            if draw_additional:
-            
-                plt.figure(figsize=(11,5))
-                plt.subplot(121)
-                NMHG2, NMHG_X, NMHG_Y , _ = plt.hist2d(dddfff["RA"], dddfff["DEC"],
-                                             bins=len(nmhg1),
-                                             norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1))
-                axesforsmooth = list(plt.gca().get_xlim()) + list(plt.gca().get_ylim())
-                #print(axesforsmooth)
-                plt.gca().set_aspect('equal', 'box')
-                plt.colorbar(fraction=0.046, pad=0.04)
-                plt.title('nmhg1 but in RA/DEC')
-                plt.scatter(cntr[0], cntr[1], color='orangered', label = 'Centroid')
-                                                
-            dddfff = dddfff.drop("stay", axis=1) 
-            dddfff = dddfff.drop("RA_pix", axis=1)
-            dddfff = dddfff.drop("DEC_pix", axis=1)
-            
-            # number_of_unfiltered_photons
-            
-            number_of_filtered_photons = len(dddfff)
-            percent_of_photons = number_of_filtered_photons/number_of_unfiltered_photons
-                                
-            if draw_additional and True:     
-                plt.show()
-                
-                NMHG2 = np.rot90(NMHG2)
-                plt.imshow(convolve(NMHG2, fltr), 
-                           norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1), 
-                           origin='upper',
-                           extent = axesforsmooth)
-                plt.colorbar(fraction=0.046, pad=0.04)
-                plt.gca().set_aspect('equal', 'box')
-                plt.title('nmhg1 but in RA/DEC convolved')
-                plt.show()
+            #print(clcl)
+            #print(vicenter)
                    
     # this goes to final panels image centered at cntr (which is set to centroid position as default)
            
@@ -297,21 +142,20 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         
     SLICE1 = SLICE1[SLICE1['ENERGY']>0.3]      
     SLICE1 = SLICE1[SLICE1['ENERGY']<2.3]
+   
+    for vic in vicenter:
         
-    if delete_bright_regions:
+        SLICE1["to_del"] = np.where( ((SLICE1["RA"]-vic[0])**2 + (SLICE1["DEC"]-vic[1])**2 < vic[2]**2), True, False)
+                               
+        SLICE1 = SLICE1[SLICE1['to_del'] == False]
+        SLICE1 = SLICE1.drop("to_del", axis=1)      
                 
-        SLICE1["RA_pix"] = ((SLICE1["RA"] - cntr[0] + half_size)*3600/ang_res).astype(int) - 1
-        SLICE1["DEC_pix"] = ((SLICE1["DEC"] - cntr[1] + half_size)*3600/ang_res).astype(int) - 1
-    
-        SLICE1['todraw'] = filter_mask[SLICE1["RA_pix"], SLICE1["DEC_pix"]]
-        SLICE1 = SLICE1[SLICE1['todraw'] == True]
-        
     nmhg, nmhg_x, nmhg_y = np.histogram2d(SLICE1["RA"], SLICE1["DEC"],
-                                          bins=int(2*half_size*3600/ang_res),
+                                          bins= 1500, #int(2*half_size*3600/ang_res),
                                           #norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1),
                                           range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
                                                           (cntr[1]-half_size, cntr[1]+half_size)]))
-                                                            
+    #print(int(2*half_size*3600/ang_res)) # 2000, #                                                        
     axesforsmooth = [nmhg_x[0], nmhg_x[-1], nmhg_y[0], nmhg_y[-1]] 
    
     if draw:
@@ -336,7 +180,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         y_s = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.95+plt.gca().get_ylim()[0]
         y_S = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.90+plt.gca().get_ylim()[0]   
         plt.plot((x_s+5/60, x_s-5/60), (y_s, y_s), color='white')
-        plt.text(x_s, y_S, f'10 arcmin $\\approx$ {10/60*D_A*np.pi/180:.0f} kpc', 
+        plt.text(x_s, y_S, f'10 arcmin $\\approx$ {10/60*D_A.value*np.pi/180:.0f} kpc', 
                  color='white', ha='center', va='center')
         
         plt.xlim(cntr[0]-half_size, cntr[0]+half_size)
