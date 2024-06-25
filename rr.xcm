@@ -1,0 +1,66 @@
+#set e1 0.3 #keV
+#set e2 2.3 #keV
+#set pi [expr (atan(1)*4.)] #это просто число pi
+#puts $pi
+
+# считываю какой-то ерозитовский файл, содержащий arf & rmf
+da erosita_spec_124.pha
+
+# открыть текстовый файл для записи
+set fileid [open "erosita_ca_E0323_Z02_N0.01.dat" w]
+fconfigure $fileid -buffering line
+
+# красные смещения
+set zlist {0 0.1 0.2 0.3}
+
+
+foreach z $zlist {
+puts -nonewline $fileid [format " %4.1f" $z]
+}
+puts $fileid [format " "]
+
+
+# задаю модель mo phabs(apec), дальше newp 2, newp 4 и 5 буду менять 
+mo phabs(apec) & /*
+newp 1 0.01
+newp 2 2.
+newp 3 0.2
+newp 4 0
+newp 5 1.
+
+
+
+query no
+setpl e
+setpl reb 10 10
+abund lodd
+
+# сетка по температурам
+set t1 0.1
+set t2 20.
+set dt 0.1
+set nt [expr (($t2-$t1)/$dt)]
+
+for {set it 0} {$it <= $nt} {incr it} {
+set tgas [expr ($t1+$it*$dt)]
+newp 2 $tgas
+
+puts -nonewline $fileid [format "%9.4e" $tgas]
+
+foreach z $zlist {
+set k [expr (1./(1.+$z)/(1.+$z)/(4.*3.141592))]
+newp 4 $z
+newp 5 $k
+
+ignore **
+notice 0.3-2.3  #только в нужном диапазоне энергий
+tclout rate 1       # считаю count rate
+set rate [lindex $xspec_tclout 2]
+
+puts -nonewline $fileid [format " %9.4e" $rate]
+
+}
+puts $fileid [format " "]
+
+}
+close $fileid

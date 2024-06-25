@@ -285,11 +285,14 @@ def draw_84_panels(del_br_reg):
 
 def calc_l_T(T, T_left, T_right, Xplot=False):
   
-    x.Xset.chatter = 0
+    x.Xset.chatter = 10
     x.AllData.clear()
     x.AllData.removeDummyrsp()
     x.AllData.dummyrsp(lowE=0.1, highE=10.0, nBins=1024)
     x.Xset.addModelString("APEC_TRACE_ABUND", "0")
+    x.Xset.abund = "lodd"
+    
+    x.AllData("erosita_spec_124.pha")
 
     if Xplot:
         x.Plot.device = '/xs'
@@ -297,9 +300,9 @@ def calc_l_T(T, T_left, T_right, Xplot=False):
         x.Plot.device = '/null'
     
     expo = 40000
-    Ab = 0.3
-    Norm = 1
+    Ab = 0.2
     z = 0.0
+    Norm = 1/4/np.pi/(1+z)**2
     nH = 0.01
     
     mod = x.Model('phabs*apec')
@@ -313,21 +316,21 @@ def calc_l_T(T, T_left, T_right, Xplot=False):
     flx1 = x.AllModels(1).flux[0]   # ergs/cm^2
     flx2 = x.AllModels(1).flux[3]   # photons 
     
-    RMF_NAME = '../erosita/erosita_pirmf_v20210719.rmf'
-    ARF_NAME = '../erosita/tm1_arf_open_000101v02.fits'
+    #RMF_NAME = '../erosita/erosita_pirmf_v20210719.rmf'
+    #ARF_NAME = '../erosita/tm1_arf_open_000101v02.fits'
     
-    fs = x.FakeitSettings(response = RMF_NAME, 
-                               arf = ARF_NAME, 
-                        background = '', 
-                          exposure = expo, 
-                        correction = '', 
-                      backExposure = '', 
-                          fileName = 'fakeit.pha')
-    x.AllData.fakeit(nSpectra = 1, 
-                     settings = fs, 
-                   applyStats = True,
-                   filePrefix = "",
-                      noWrite = True)
+    #fs = x.FakeitSettings(response = RMF_NAME, 
+    #                           arf = ARF_NAME, 
+    #                    background = '', 
+    #                      exposure = expo, 
+    #                    correction = '', 
+    #                  backExposure = '', 
+    #                      fileName = 'fakeit.pha')
+    #x.AllData.fakeit(nSpectra = 1, 
+    #                 settings = fs, 
+    #               applyStats = True,
+    #               filePrefix = "",
+    #                  noWrite = True)
 
     x.AllData.ignore(f"**-{T_left} {T_right}-**")             # IMPORTANT !
     x.AllData.show()
