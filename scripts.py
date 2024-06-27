@@ -2,7 +2,7 @@
 
 # returns list of photons inside chosen radius
 
-def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delete_bright_regions=False, delete_superfluous=False, draw=True, draw_additional=False, redshifted_back=True, withagn=False):
+def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delete_superfluous=False, draw=True, draw_additional=False, redshifted_back=True, withagn=False):
 
     # there are several cases of SAME ihal for DIFFERENT cluster numbers
     # this is the reason for using cluster number as a counter
@@ -66,7 +66,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         #setting area and resolution for searching for center
     
         ang_res = 4
-        halfsidelength = 7                   # in R500
+        halfsidelength = 10                   # in R500
         half_size = halfsidelength*R   # in degrees
         
         if (current_cluster_number != 13334) and (current_cluster_number != 18589):
@@ -168,13 +168,13 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
     
         for vic in vicenter:
         
-            SLICE1["to_del"] = np.where( ((SLICE1["RA"]-vic[0])**2 + (SLICE1["DEC"]-vic[1])**2 < vic[2]**2), True, False)
+            SLICE1["to_del"] = np.where( ((SLICE1["RA"]-vic[0])**2 + (SLICE1["DEC"]-vic[1])**2 < 2*vic[2]**2), True, False)
                                
             SLICE1 = SLICE1[SLICE1['to_del'] == False]
             SLICE1 = SLICE1.drop("to_del", axis=1)      
                 
     nmhg, nmhg_x, nmhg_y = np.histogram2d(SLICE1["RA"], SLICE1["DEC"],
-                                          bins= int(2*half_size*3600/ang_res),
+                                          bins=1000, # int(2*half_size*3600/ang_res),
                                           #norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1),
                                           range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
                                                           (cntr[1]-half_size, cntr[1]+half_size)]))
@@ -230,12 +230,8 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         #print(plt.gca().get_xlim()*u.deg)
         #print(plt.gca().get_ylim()*u.deg)
         
-        if not delete_bright_regions:
-            plt.title(ttiittllee, fontsize=15)
-            #cb.ax.set_yticklabels(['0', '1', '10', '100'])
-        else:
-            plt.title(ttiittllee+f', RP={100*percent_of_photons:.1f}%', fontsize=15)
-            #cb.ax.set_yticklabels(['0', '1'])
+        plt.title(ttiittllee, fontsize=15)
+        #cb.ax.set_yticklabels(['0', '1', '10', '100'])
         
         handles, labels = plt.gca().get_legend_handles_labels()
         #l1 = Line2D([], [], label="$R_{vir}$", color='dodgerblue', linestyle='--', linewidth=3)
@@ -267,7 +263,7 @@ def kruzhok(r_pixels, mm, NMHG, d_pixels):
     return mask*kusok, mask
     
 
-def draw_84_panels(del_br_reg):
+def draw_84_panels():
 
     NNN = 84
     
@@ -280,19 +276,17 @@ def draw_84_panels(del_br_reg):
         
         plt.subplot(12, 7, np.where(np.array(clusters.index[:NNN]) == cl_num)[0][0]+1)
         
-        pho_list = extract_photons_from_cluster(cl_num, r = 1, draw=True, delete_bright_regions=del_br_reg)
+        pho_list = extract_photons_from_cluster(cl_num, r = 1, draw=True)
 
 
 def calc_l_T(T, T_left, T_right, Xplot=False):
   
-    x.Xset.chatter = 10
+    x.Xset.chatter = 0
     x.AllData.clear()
     x.AllData.removeDummyrsp()
     x.AllData.dummyrsp(lowE=0.1, highE=10.0, nBins=1024)
     x.Xset.addModelString("APEC_TRACE_ABUND", "0")
-    x.Xset.abund = "lodd"
-    
-    x.AllData("erosita_spec_124.pha")
+    x.Xset.abund = "angr"
 
     if Xplot:
         x.Plot.device = '/xs'
@@ -316,21 +310,24 @@ def calc_l_T(T, T_left, T_right, Xplot=False):
     flx1 = x.AllModels(1).flux[0]   # ergs/cm^2
     flx2 = x.AllModels(1).flux[3]   # photons 
     
-    #RMF_NAME = '../erosita/erosita_pirmf_v20210719.rmf'
-    #ARF_NAME = '../erosita/tm1_arf_open_000101v02.fits'
+    RMF_NAME = '../erosita/erosita_pirmf_v20210719.rmf'
+    ARF_NAME = '../erosita/tm1_arf_filter_000101v02.fits'
     
-    #fs = x.FakeitSettings(response = RMF_NAME, 
-    #                           arf = ARF_NAME, 
-    #                    background = '', 
-    #                      exposure = expo, 
-    #                    correction = '', 
-    #                  backExposure = '', 
-    #                      fileName = 'fakeit.pha')
-    #x.AllData.fakeit(nSpectra = 1, 
-    #                 settings = fs, 
-    #               applyStats = True,
-    #               filePrefix = "",
-    #                  noWrite = True)
+    #RMF_NAME = 'rmf_v1.fits'
+    #ARF_NAME = 'esf10.Dsur1234regR3cCaXv2.0001.arf'
+        
+    fs = x.FakeitSettings(response = RMF_NAME, 
+                               arf = ARF_NAME, 
+                        background = '', 
+                          exposure = expo, 
+                        correction = '', 
+                      backExposure = '', 
+                          fileName = 'fakeit.pha')
+    x.AllData.fakeit(nSpectra = 1, 
+                     settings = fs, 
+                   applyStats = True,
+                   filePrefix = "",
+                      noWrite = True)
 
     x.AllData.ignore(f"**-{T_left} {T_right}-**")             # IMPORTANT !
     x.AllData.show()

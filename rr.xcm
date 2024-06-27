@@ -4,7 +4,8 @@
 #puts $pi
 
 # считываю какой-то ерозитовский файл, содержащий arf & rmf
-da erosita_spec_124.pha
+#da erosita_spec_124.pha
+da esf10.Dsur1234regR3cCaXv2.0001.se.pha
 
 # открыть текстовый файл для записи
 set fileid [open "erosita_ca_E0323_Z02_N0.01.dat" w]
