@@ -64,7 +64,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         #setting area and resolution for searching for center
     
         ang_res = 4
-        halfsidelength = 3                   # in R500
+        halfsidelength = 5                   # in R500
         half_size = halfsidelength*R   # in degrees
         
         print(half_size)
@@ -98,7 +98,6 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         c_y_1 = DEC_c - hs4s + c_y*ang_res/3600
         cntr = (c_x_1, c_y_1) # position in degrees
         
-        print(cntr)
         # taking photons from circle centered at centroid
         
         SLICE["check"]=np.where((SLICE["RA"]-c_x_1)**2+(SLICE["DEC"]-c_y_1)**2 <= R**2, True, False)
@@ -106,9 +105,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         dddfff = df.drop("check", axis=1)
         
     # deleting less massive haloes
-    
-    galaxies_all = pd.read_csv("../data/eROSITA_30.0x30.0/Catalouges/galaxies.dat", sep='\s+', header=0)
-    
+        
     if delete_superfluous:
         
         VICINITY = np.where( ((clusters_all["x_pix"]*30-5 - c_x_1)**2 + (clusters_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2)  & ( np.abs(clusters_all["z_true"] - ztrue) < 0.017141 ) )
@@ -128,18 +125,14 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
             vicenter = list(zip(vicinity_current["x_pix"].values*30-5, 
                                 vicinity_current["y_pix"].values*30-5, 
                                 R_500_s))
-            
             #print(clcl)
             #print(vicenter)
-        
-    #    VICINITY_GAL = np.where( ((galaxies_all["x_pix"]*30-5 - c_x_1)**2 + (galaxies_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2) & ( np.abs(galaxies_all["z_true"] - ztrue) < 0.017141 ) )
             
-    #    vclu_gal = galaxies_all.loc[VICINITY_GAL]
-            
-    #    for clcl_gal in VICINITY_GAL:
-        
-    #        vicinity_current_gal = galaxies_all.loc[clcl_gal]
-           
+    #    galaxies_all = pd.read_csv("../data/eROSITA_30.0x30.0/Catalouges/galaxies.dat", sep='\s+', header=0)    
+    #    VICINITY_GAL = np.where( ((galaxies_all["x_pix"]*30-5 - c_x_1)**2 + (galaxies_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2) & ( np.abs(galaxies_all["z_true"] - ztrue) < 0.017141 ) )          
+    #    vclu_gal = galaxies_all.loc[VICINITY_GAL]          
+    #    for clcl_gal in VICINITY_GAL:     
+    #        vicinity_current_gal = galaxies_all.loc[clcl_gal]           
     #        vicenter_gal = list(zip(vicinity_current_gal["x_pix"].values*30-5, vicinity_current_gal["y_pix"].values*30-5))
     
                    
@@ -163,20 +156,21 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
             SLICE1 = SLICE1.drop("to_del", axis=1)      
                 
     nmhg, nmhg_x, nmhg_y = np.histogram2d(SLICE1["RA"], SLICE1["DEC"],
-                                          bins=1000, # int(2*half_size*3600/ang_res),
+                                          bins=int(2*half_size*3600/ang_res),
                                           #norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1),
                                           range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
-                                                          (cntr[1]-half_size, cntr[1]+half_size)]),
-                                          weights=SLICE1["ENERGY"])
-    #print(int(2*half_size*3600/ang_res)) # 2000, #                                                        
+                                                          (cntr[1]-half_size, cntr[1]+half_size)]))#,
+                                          #density=False, weights=SLICE1["ENERGY"])
+                                                       
     axesforsmooth = [nmhg_x[0], nmhg_x[-1], nmhg_y[0], nmhg_y[-1]]
     
-    nmhg = nmhg / 1000 / 10000 / ang_res**2 * 60**2 * 60**2
+    nmhg = nmhg / 1000 / 10000 / ang_res**2 * 60**2
    
     if draw:
            
-        trtr = plt.imshow(convolve(np.rot90(nmhg), Gaussian2DKernel(1)), 
-                          norm=matplotlib.colors.SymLogNorm(linthresh=0.1, linscale=1), 
+        trtr = plt.imshow(np.rot90(nmhg),
+                          #convolve(np.rot90(nmhg), Gaussian2DKernel(1)), 
+                          norm=matplotlib.colors.SymLogNorm(linthresh=0.00001, linscale=1), 
                           origin='upper',
                           extent = axesforsmooth)     
         
@@ -184,8 +178,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         plt.scatter(cntr[0], cntr[1], color='orangered', label = 'Centroid')
         
         if delete_superfluous:
- 
-                
+                 
          #   for vv in vicenter_gal:
          #       plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=7)
                                                        
@@ -217,7 +210,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         cb.ax.tick_params(labelsize=13)
         #cb.set_label(f"Number of photons in {ang_res}''$\\times${ang_res}'' bin", size=13)
         cb.set_label(f"Photons cm$^{{-2}}$ s$^{{-1}}$ arcmin$^{{-2}}$", size=13)
-        ttiittllee = f'#{current_cluster_number}: z={ztrue:.3f}, A={AREA:.1f} min$^2$'
+        ttiittllee = f'#{current_cluster_number}: z={ztrue:.3f}, A={AREA:.1f} arcmin$^2$'
         plt.gca().invert_xaxis()
         
         #print(plt.gca().get_xlim()*u.deg)
