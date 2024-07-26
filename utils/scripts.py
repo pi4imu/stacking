@@ -2,7 +2,7 @@
 
 # returns list of photons inside chosen radius
 
-def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delete_superfluous=False, draw=True, withagn=False):
+def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delete_superfluous=False, draw=True, withagn=False, ARF_weights=True):
 
     # there are several cases of SAME ihal for DIFFERENT cluster numbers
     # this is the reason for using cluster number as a counter
@@ -66,8 +66,6 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         ang_res = 4
         halfsidelength = 5                   # in R500
         half_size = halfsidelength*R   # in degrees
-        
-        print(half_size)
         
         if (current_cluster_number != 13334) and (current_cluster_number != 18589):
             hs4s = half_size/3/(halfsidelength/3)
@@ -155,22 +153,46 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
             SLICE1 = SLICE1[SLICE1['to_del'] == False]
             SLICE1 = SLICE1.drop("to_del", axis=1)      
                 
-    nmhg, nmhg_x, nmhg_y = np.histogram2d(SLICE1["RA"], SLICE1["DEC"],
-                                          bins=int(2*half_size*3600/ang_res),
-                                          #norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1),
-                                          range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
-                                                          (cntr[1]-half_size, cntr[1]+half_size)]))#,
-                                          #density=False, weights=SLICE1["ENERGY"])
-                                                       
-    axesforsmooth = [nmhg_x[0], nmhg_x[-1], nmhg_y[0], nmhg_y[-1]]
+    if not ARF_weights:
     
-    nmhg = nmhg / 1000 / 10000 / ang_res**2 * 60**2
+        nmhg, nmhg_x, nmhg_y = np.histogram2d(SLICE1["RA"], SLICE1["DEC"],
+                                              bins=int(2*half_size*3600/ang_res),
+                                              #norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1),
+                                              range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
+                                                              (cntr[1]-half_size, cntr[1]+half_size)]))#,
+                                              #density=False, weights=SLICE1["ENERGY"])
+                                                       
+        axesforsmooth = [nmhg_x[0], nmhg_x[-1], nmhg_y[0], nmhg_y[-1]]
+    
+        nmhg = nmhg / 1000 / 10000 / ang_res**2 * 60**2
+        
+        LINTHRESH = 0.00001
    
+    else:
+    
+        arf_survey = fits.open('../erosita/esf10.Dsur1234regR3cCaXv2.0001.arf')[1].data
+        
+        sl = SLICE1
+        #sl["FLUX"] = sl["ENERGY"] / 1000 / 10000 / 4**2 * 60**2      # keV/cm2/s/arc
+        sl["EFF_AREA"] = np.interp(sl["ENERGY"], arf_survey["ENERG_LO"], 7*arf_survey["SPECRESP"]) # cm2
+        #sl["RATE"] = sl["FLUX"] * sl["EFF_AREA"]    # keV/s
+        
+        nmhg, nmhg_x, nmhg_y = np.histogram2d(sl["RA"], sl["DEC"],
+                                              bins=1000, #int(2*half_size*3600/ang_res),
+                                              #norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1),
+                                              range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
+                                                              (cntr[1]-half_size, cntr[1]+half_size)]),
+                                              weights=sl["EFF_AREA"])
+        
+        axesforsmooth = [nmhg_x[0], nmhg_x[-1], nmhg_y[0], nmhg_y[-1]]
+        
+        LINTHRESH = 1000         
+    
     if draw:
            
         trtr = plt.imshow(np.rot90(nmhg),
                           #convolve(np.rot90(nmhg), Gaussian2DKernel(1)), 
-                          norm=matplotlib.colors.SymLogNorm(linthresh=0.00001, linscale=1), 
+                          norm=matplotlib.colors.SymLogNorm(linthresh=LINTHRESH, linscale=1), 
                           origin='upper',
                           extent = axesforsmooth)     
         
@@ -226,7 +248,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         #plt.legend(handles=handles, loc=3, fontsize=13)
         #plt.show()
 
-    return nmhg, SLICE1
+    return nmhg
  
 def kruzhok(r_pixels, mm, NMHG, d_pixels):
 
