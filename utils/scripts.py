@@ -2,7 +2,7 @@
 
 # returns list of photons inside chosen radius
 
-def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delete_superfluous=False, draw=True, withagn=False, ARF_weights=True):
+def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delete_superfluous=False, draw=True, withagn=False, ARF_weights=False):
 
     # there are several cases of SAME ihal for DIFFERENT cluster numbers
     # this is the reason for using cluster number as a counter
@@ -20,7 +20,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
     
     # D_A = 343000
     
-    R_500_fid = 1000/343000*180/np.pi   # degrees
+    #R_500_fid = 1000/343000*180/np.pi   # degrees
     
     snap_id_str = binned_clusters[current_cluster_number][1]   # id of photon list
         
@@ -48,6 +48,14 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
     #print(R_500_rescaled*60)
         
     AREA = np.pi*R**2*3600   # min2
+    
+    #setting area and resolution for searching for center
+    
+    ang_res = 4
+    halfsidelength = 10                   # in R500
+    half_size = halfsidelength*R   # in degrees
+        
+    histlen = 1000   # in pixels
         
     if not centroid:
     
@@ -60,13 +68,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         cntr = (RA_c, DEC_c) # for drawing
     
     else:
-    
-        #setting area and resolution for searching for center
-    
-        ang_res = 4
-        halfsidelength = 5                   # in R500
-        half_size = halfsidelength*R   # in degrees
-        
+            
         if (current_cluster_number != 13334) and (current_cluster_number != 18589):
             hs4s = half_size/3/(halfsidelength/3)
         else:
@@ -134,7 +136,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
     #        vicenter_gal = list(zip(vicinity_current_gal["x_pix"].values*30-5, vicinity_current_gal["y_pix"].values*30-5))
     
                    
-    # this goes to final panels image centered at cntr (which is set to centroid position as default)
+    # this goes to final panels image centered at cntr (which is set to centroid position by default)
            
     SLICE1["todraw"] = np.where( (np.abs(SLICE1["RA"]-cntr[0]) < half_size) & (np.abs(SLICE1["DEC"]-cntr[1]) < half_size),
                                     True, False)
@@ -156,13 +158,15 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
     if not ARF_weights:
     
         nmhg, nmhg_x, nmhg_y = np.histogram2d(SLICE1["RA"], SLICE1["DEC"],
-                                              bins=int(2*half_size*3600/ang_res),
+                                              bins=histlen, #int(2*half_size*3600/ang_res),
                                               #norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1),
                                               range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
                                                               (cntr[1]-half_size, cntr[1]+half_size)]))#,
                                               #density=False, weights=SLICE1["ENERGY"])
                                                        
         axesforsmooth = [nmhg_x[0], nmhg_x[-1], nmhg_y[0], nmhg_y[-1]]
+        
+        ang_res = 2*half_size*3600 / histlen
     
         nmhg = nmhg / 1000 / 10000 / ang_res**2 * 60**2
         
@@ -178,15 +182,19 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         #sl["RATE"] = sl["FLUX"] * sl["EFF_AREA"]    # keV/s
         
         nmhg, nmhg_x, nmhg_y = np.histogram2d(sl["RA"], sl["DEC"],
-                                              bins=1000, #int(2*half_size*3600/ang_res),
+                                              bins=histlen, #int(2*half_size*3600/ang_res),
                                               #norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1),
                                               range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
                                                               (cntr[1]-half_size, cntr[1]+half_size)]),
                                               weights=sl["EFF_AREA"])
         
         axesforsmooth = [nmhg_x[0], nmhg_x[-1], nmhg_y[0], nmhg_y[-1]]
+
+        ang_res = 2*half_size*3600 / histlen
+    
+        nmhg = nmhg / 1000 / 10000 / ang_res**2 * 60**2
         
-        LINTHRESH = 1000         
+        LINTHRESH = 0.01         
     
     if draw:
            
@@ -232,14 +240,14 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         cb.ax.tick_params(labelsize=13)
         #cb.set_label(f"Number of photons in {ang_res}''$\\times${ang_res}'' bin", size=13)
         cb.set_label(f"Photons cm$^{{-2}}$ s$^{{-1}}$ arcmin$^{{-2}}$", size=13)
-        ttiittllee = f'#{current_cluster_number}: z={ztrue:.3f}, A={AREA:.1f} arcmin$^2$'
+        ttiittllee = f'#{current_cluster_number}: z={ztrue:.3f}, A={AREA:.1f} arcmin$^2, R={ang_res:.1f}\'\'$'
         plt.gca().invert_xaxis()
         
         #print(plt.gca().get_xlim()*u.deg)
         #print(plt.gca().get_ylim()*u.deg)
         
         plt.title(ttiittllee, fontsize=15)
-        cb.ax.set_yticklabels(['0', '1', '10', '100'])
+        #cb.ax.set_yticklabels(['0', '1', '10', '100', '1000'])
         
         handles, labels = plt.gca().get_legend_handles_labels()
         #l1 = Line2D([], [], label="$R_{vir}$", color='dodgerblue', linestyle='--', linewidth=3)
@@ -248,7 +256,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         #plt.legend(handles=handles, loc=3, fontsize=13)
         #plt.show()
 
-    return nmhg
+    return nmhg, SLICE1
  
 def kruzhok(r_pixels, mm, NMHG, d_pixels):
 
@@ -265,6 +273,78 @@ def kruzhok(r_pixels, mm, NMHG, d_pixels):
         
     return mask*kusok, mask
     
+    
+def brightness_profile(total_hist, r500r, draw=True):
+    
+    brightness = []
+    
+    
+    
+    r_pixels_max = int(len(total_hist)/2) # 5*r500r    # depends on field size
+
+    #ring_width = 10
+
+    setka_bins = np.geomspace(2, r_pixels_max, 21) # .astype(int)       # borders of bins
+
+    #print(setka_bins)
+
+    setka = [(a+b)/2 for a, b in zip(setka_bins[:-1], setka_bins[1:])]  # centers of bins
+    
+    c2 = [r_pixels_max, r_pixels_max]  # center of field
+
+    #print(setka)
+    
+    err = np.diff(setka_bins)/2   # just bins width
+    
+    #print(err)
+    
+    for i in tqdm(range(0, len(setka_bins)-1)):
+
+        k1 = kruzhok(setka_bins[i], c2, total_hist, r_pixels_max-1)
+        k2 = kruzhok(setka_bins[i+1], c2, total_hist, r_pixels_max-1)
+        ring = k2[0]-k1[0]
+        pix_in_k1 = sum(k1[1].flatten())
+        pix_in_k2 = sum(k2[1].flatten())
+        #print(pix_in_k1, pix_in_k2)
+        br = ring.sum()/(pix_in_k2-pix_in_k1)
+        brightness.append(br)
+    
+        #plt.imshow(ring)
+        #plt.show()
+        
+    #print(brightness)
+    
+    #print(np.array(setka)/r500r*(10*998/1000))
+    
+    #print(len(setka), len(brightness))
+    
+    if draw:
+        
+        plt.xlabel("Radius, arcmin", fontsize=12)  # "Radius in units of $R_{500}$")
+        plt.ylabel("Intensity, TODO units", fontsize=12) # "Brightness in relative units")
+
+        plt.xscale("log")
+        plt.yscale("log")
+
+        plt.axvline(10*998/1000, linestyle='--', color='orangered', label='$R_{500c}$', lw=2)
+        plt.axvline(10*998/1000*1.6, linestyle='--', color='dodgerblue', label='$R_{200c} = 1.6 \cdot R_{500c}$', lw=2)
+        plt.axvline(10*998/1000*2.7, linestyle='--', color='green', label='$R_{200m} = 2.7 \cdot R_{500c}$', lw=2)
+
+        #plt.scatter(setka[:-1]/r500r*(10*998/1000), np.array(brightness)/10000, color='black', s=7)
+        
+        plt.errorbar(np.array(setka)/r500r*(10*998/1000), 
+                     np.array(brightness), 
+                     xerr=err/r500r*(10*998/1000), linewidth=0, marker='o', markersize=3, alpha=0.95,
+                     elinewidth=1, capsize=0, color='black')#, label=l4dots)
+
+        plt.legend(loc=3, fontsize=12)
+        plt.xticks([0.1, 1, 10], [0.1, 1, 10])
+        plt.gca().set_aspect('auto', 'box')
+
+        #plt.show()
+    
+    return brightness
+    
 
 def draw_84_panels():
 
@@ -277,9 +357,13 @@ def draw_84_panels():
     
     for cl_num in tqdm(clusters.index[:NNN]):
         
-        plt.subplot(12, 7, np.where(np.array(clusters.index[:NNN]) == cl_num)[0][0]+1)
+        #plt.subplot(12, 7, np.where(np.array(clusters.index[:NNN]) == cl_num)[0][0]+1)
         
-        pho_list = extract_photons_from_cluster(cl_num, r = 1, draw=True)
+        pho_hist = extract_photons_from_cluster(cl_num, r = 1, draw=False)
+        
+        brightness_profile(r500r = 50, total_hist = pho_hist)
+        
+        plt.show()
 
 
 def calc_l_T(T, T_left, T_right, Xplot=False):
