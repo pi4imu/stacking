@@ -2,7 +2,7 @@
 
 # returns list of photons inside chosen radius
 
-def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delete_superfluous=False, draw=True, withagn=False, ARF_weights=False):
+def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delete_superfluous=False, draw=True, histlen=2000, withagn=False, ARF_weights=False):
 
     # there are several cases of SAME ihal for DIFFERENT cluster numbers
     # this is the reason for using cluster number as a counter
@@ -51,12 +51,10 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
     
     #setting area and resolution for searching for center
     
-    ang_res = 4
+    ang_res = 4                     
     halfsidelength = 10                   # in R500
     half_size = halfsidelength*R   # in degrees
-        
-    histlen = 1000   # in pixels
-        
+            
     if not centroid:
     
         # taking photons from circle centered at RA_c, DEC_c
@@ -68,6 +66,8 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         cntr = (RA_c, DEC_c) # for drawing
     
     else:
+    
+        # hs4s - half size for search
             
         if (current_cluster_number != 13334) and (current_cluster_number != 18589):
             hs4s = half_size/3/(halfsidelength/3)
@@ -161,17 +161,10 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
                                               bins=histlen, #int(2*half_size*3600/ang_res),
                                               #norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1),
                                               range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
-                                                              (cntr[1]-half_size, cntr[1]+half_size)]))#,
-                                              #density=False, weights=SLICE1["ENERGY"])
-                                                       
-        axesforsmooth = [nmhg_x[0], nmhg_x[-1], nmhg_y[0], nmhg_y[-1]]
-        
-        ang_res = 2*half_size*3600 / histlen
-    
-        nmhg = nmhg / 1000 / 10000 / ang_res**2 * 60**2
-        
-        LINTHRESH = 0.00001
-   
+                                                              (cntr[1]-half_size, cntr[1]+half_size)]), density=True)
+                                              #weights=SLICE1["ENERGY"]
+                                             
+  
     else:
     
         arf_survey = fits.open('../erosita/esf10.Dsur1234regR3cCaXv2.0001.arf')[1].data
@@ -188,13 +181,13 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
                                                               (cntr[1]-half_size, cntr[1]+half_size)]),
                                               weights=sl["EFF_AREA"])
         
-        axesforsmooth = [nmhg_x[0], nmhg_x[-1], nmhg_y[0], nmhg_y[-1]]
-
-        ang_res = 2*half_size*3600 / histlen
+    axesforsmooth = [nmhg_x[0], nmhg_x[-1], nmhg_y[0], nmhg_y[-1]]
+      
+    ang_res = 2*half_size*3600 / histlen
     
-        nmhg = nmhg / 1000 / 10000 / ang_res**2 * 60**2
+    nmhg = nmhg / 1000 / 10000 / ang_res**2 * 60**2
         
-        LINTHRESH = 0.01         
+    LINTHRESH = 0.00001         
     
     if draw:
            
@@ -238,8 +231,12 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         plt.yticks(size=13)
         cb = plt.colorbar(trtr, fraction=0.046, pad=0.04)
         cb.ax.tick_params(labelsize=13)
-        #cb.set_label(f"Number of photons in {ang_res}''$\\times${ang_res}'' bin", size=13)
-        cb.set_label(f"Photons cm$^{{-2}}$ s$^{{-1}}$ arcmin$^{{-2}}$", size=13)
+     
+        if not ARF_weights:
+            cb.set_label(f"Photons cm$^{{-2}}$ s$^{{-1}}$ arcmin$^{{-2}}$", size=13)
+        else:
+            cb.set_label(f"Counts s$^{{-1}}$ arcmin$^{{-2}}$", size=13)
+            
         ttiittllee = f'#{current_cluster_number}: z={ztrue:.3f}, A={AREA:.1f} arcmin$^2, R={ang_res:.1f}\'\'$'
         plt.gca().invert_xaxis()
         
@@ -272,19 +269,37 @@ def kruzhok(r_pixels, mm, NMHG, d_pixels):
     mask = dist_from_center <= r_pixels
         
     return mask*kusok, mask
-    
-    
-def brightness_profile(total_hist, r500r, draw=True):
-    
-    brightness = []
-    
-    
-    
-    r_pixels_max = int(len(total_hist)/2) # 5*r500r    # depends on field size
 
-    #ring_width = 10
+   
+def koltso(r_in, r_out, mm, NMHG, d_pixels):
 
-    setka_bins = np.geomspace(2, r_pixels_max, 21) # .astype(int)       # borders of bins
+    kusok = np.zeros((2*d_pixels+1, 2*d_pixels+1))
+        
+    for i in range(mm[0]-d_pixels, mm[0]+d_pixels+1):
+        for j in range(mm[1]-d_pixels, mm[1]+d_pixels+1):
+            kusok[i - (mm[0]-d_pixels)][j - (mm[1]-d_pixels)] = NMHG[i][j]
+        
+    Y, X = np.ogrid[(mm[1]-d_pixels):(mm[1]+d_pixels+1), (mm[0]-d_pixels):(mm[0]+d_pixels+1)]
+    dist_from_center = np.sqrt((X - mm[0])**2 + (Y-mm[1])**2)
+    
+    mask = (dist_from_center <= r_out) & (dist_from_center >= r_in)
+    
+    #print(kusok[mask])
+    
+    #print(mask)
+    #plt.imshow(kusok[mask])
+    #plt.show()
+        
+    return mask*kusok, mask
+    
+    
+def brightness_profile(hist, field_length, draw=True, ARF_weights=False):
+            
+    r_pixels_max = int(len(hist)/2) # 5*r500r    # depends on field size
+
+    r500r = int(r_pixels_max/field_length)
+
+    setka_bins = np.append([0, 1, 2, 3, 4],np.geomspace(5, r_pixels_max, 20)) # .astype(int)       # borders of bins
 
     #print(setka_bins)
 
@@ -298,15 +313,20 @@ def brightness_profile(total_hist, r500r, draw=True):
     
     #print(err)
     
+    brightness = []
+        
     for i in tqdm(range(0, len(setka_bins)-1)):
 
-        k1 = kruzhok(setka_bins[i], c2, total_hist, r_pixels_max-1)
-        k2 = kruzhok(setka_bins[i+1], c2, total_hist, r_pixels_max-1)
-        ring = k2[0]-k1[0]
-        pix_in_k1 = sum(k1[1].flatten())
-        pix_in_k2 = sum(k2[1].flatten())
+        #k1 = kruzhok(setka_bins[i], c2, hist, r_pixels_max-1)
+        #k2 = kruzhok(setka_bins[i+1], c2, hist, r_pixels_max-1)
+        #ring = k2[0]-k1[0]
+        #pix_in_k1 = sum(k1[1].flatten())
+        #pix_in_k2 = sum(k2[1].flatten())
         #print(pix_in_k1, pix_in_k2)
-        br = ring.sum()/(pix_in_k2-pix_in_k1)
+        
+        ring = koltso(setka_bins[i], setka_bins[i+1], c2, hist, r_pixels_max-1)
+        
+        br = ring[0].sum()/sum(ring[1].flatten())      # (pix_in_k2-pix_in_k1)
         brightness.append(br)
     
         #plt.imshow(ring)
@@ -321,8 +341,12 @@ def brightness_profile(total_hist, r500r, draw=True):
     if draw:
         
         plt.xlabel("Radius, arcmin", fontsize=12)  # "Radius in units of $R_{500}$")
-        plt.ylabel("Intensity, TODO units", fontsize=12) # "Brightness in relative units")
-
+        
+        if not ARF_weights:
+            plt.ylabel("Photons cm$^{{-2}}$ s$^{{-1}}$ arcmin$^{{-2}}$", fontsize=12) # "Brightness in relative units")
+        else:
+            plt.ylabel("Counts s$^{{-1}}$ arcmin$^{{-2}}$", fontsize=12) # "Brightness in relative units")
+        
         plt.xscale("log")
         plt.yscale("log")
 
@@ -339,8 +363,8 @@ def brightness_profile(total_hist, r500r, draw=True):
 
         plt.legend(loc=3, fontsize=12)
         plt.xticks([0.1, 1, 10], [0.1, 1, 10])
-        plt.gca().set_aspect('auto', 'box')
-
+        #plt.gca().set_aspect('auto', 'box')
+        
         #plt.show()
     
     return brightness
@@ -361,7 +385,7 @@ def draw_84_panels():
         
         pho_hist = extract_photons_from_cluster(cl_num, r = 1, draw=False)
         
-        brightness_profile(r500r = 50, total_hist = pho_hist)
+        brightness_profile(r500r = 50, hist = pho_hist)
         
         plt.show()
 
@@ -436,3 +460,10 @@ def calc_l_T(T, T_left, T_right, Xplot=False):
 #    s_i = x.AllData(1).values
     
     return flx1, flx2, cr #, np.dot(xVals, yVals)/sum(yVals), np.dot(E_i, s_i)/cr
+    
+    
+def E(z):
+    
+    O_M, O_L, O_K = 0.272, 0.728, 0.000
+    
+    return np.sqrt( O_M*(1+z)**3 + O_K*(1+z)**2 + O_L )
