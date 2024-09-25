@@ -148,20 +148,37 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
    
     if delete_superfluous:
     
+        MASK = pd.DataFrame([])
+    
         for vic in vicenter:
-        
+            #print(vic)
+            #display(SLICE1)
             SLICE1["to_del"] = np.where( ((SLICE1["RA"]-vic[0])**2 + (SLICE1["DEC"]-vic[1])**2 < 2*vic[2]**2), True, False)
-                               
+            #display(SLICE1)
+            MASK = pd.concat([MASK, SLICE1[SLICE1['to_del'] == True]], axis=0)
             SLICE1 = SLICE1[SLICE1['to_del'] == False]
-            SLICE1 = SLICE1.drop("to_del", axis=1)      
+            #display(SLICE1)
+            #display(MASK)
+            SLICE1 = SLICE1.drop("to_del", axis=1)
+            #display(MASK)
+            
+    
+        nmhg_mask, _, _ = np.histogram2d(MASK["RA"], MASK["DEC"],
+                                              bins=histlen, #int(2*half_size*3600/ang_res),
+                                              #norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1),
+                                              range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
+                                                              (cntr[1]-half_size, cntr[1]+half_size)]))
+                                              
+        nmhg_mask = np.where(nmhg_mask > 0, 1000, False)
                 
     if not ARF_weights:
+    
     
         nmhg, nmhg_x, nmhg_y = np.histogram2d(SLICE1["RA"], SLICE1["DEC"],
                                               bins=histlen, #int(2*half_size*3600/ang_res),
                                               #norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1),
                                               range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
-                                                              (cntr[1]-half_size, cntr[1]+half_size)]), density=True)
+                                                              (cntr[1]-half_size, cntr[1]+half_size)])) #, density=True)
                                               #weights=SLICE1["ENERGY"]
                                              
   
@@ -187,7 +204,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
     
     nmhg = nmhg / 1000 / 10000 / ang_res**2 * 60**2
         
-    LINTHRESH = 0.00001         
+    LINTHRESH = 0.00001
     
     if draw:
            
@@ -200,15 +217,15 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         plt.scatter(RA_c, DEC_c, color='magenta', label = 'Catalogue')
         plt.scatter(cntr[0], cntr[1], color='orangered', label = 'Centroid')
         
-        if delete_superfluous:
+        #if delete_superfluous:
                  
          #   for vv in vicenter_gal:
          #       plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=7)
                                                        
-            for vv in vicenter:
-                plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=7)
+            #for vv in vicenter:
+                #plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=7)
                 
-                plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', linestyle="--", lw=1, fill = False))
+                #plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', linestyle="--", lw=1, fill = False))
                 
                         
         #plt.gca().add_patch(plt.Circle((RA_c, DEC_c), R_vir, color='dodgerblue', linestyle="--", lw=3, fill = False))
@@ -253,7 +270,11 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         #plt.legend(handles=handles, loc=3, fontsize=13)
         #plt.show()
 
-    return nmhg, SLICE1
+    if delete_superfluous:
+        return nmhg, SLICE1, nmhg_mask
+    else:
+        return nmhg, SLICE1
+ 
  
 def kruzhok(r_pixels, mm, NMHG, d_pixels):
 
@@ -285,9 +306,10 @@ def koltso(r_in, r_out, mm, NMHG, d_pixels):
     mask = (dist_from_center <= r_out) & (dist_from_center >= r_in)
     
     #print(kusok[mask])
-    
-    #print(mask)
-    #plt.imshow(kusok[mask])
+    #plt.subplot(121)
+    #plt.imshow(mask[990:1010, 990:1010])
+    #plt.subplot(122)
+    #plt.imshow((kusok*mask)[990:1010, 990:1010])
     #plt.show()
         
     return mask*kusok, mask
@@ -326,6 +348,9 @@ def brightness_profile(hist, field_length, draw=True, ARF_weights=False):
         
         ring = koltso(setka_bins[i], setka_bins[i+1], c2, hist, r_pixels_max-1)
         
+        #print(ring[0].sum(), sum(ring[1].flatten()))
+        #print()
+        
         br = ring[0].sum()/sum(ring[1].flatten())      # (pix_in_k2-pix_in_k1)
         brightness.append(br)
     
@@ -353,6 +378,7 @@ def brightness_profile(hist, field_length, draw=True, ARF_weights=False):
         plt.axvline(10*998/1000, linestyle='--', color='orangered', label='$R_{500c}$', lw=2)
         plt.axvline(10*998/1000*1.6, linestyle='--', color='dodgerblue', label='$R_{200c} = 1.6 \cdot R_{500c}$', lw=2)
         plt.axvline(10*998/1000*2.7, linestyle='--', color='green', label='$R_{200m} = 2.7 \cdot R_{500c}$', lw=2)
+        plt.axvline(10*998/1000*8.1, linestyle='--', color='magenta', label='$R_{ta} = 8.1 \cdot R_{500c}$', lw=2)
 
         #plt.scatter(setka[:-1]/r500r*(10*998/1000), np.array(brightness)/10000, color='black', s=7)
         
@@ -362,7 +388,7 @@ def brightness_profile(hist, field_length, draw=True, ARF_weights=False):
                      elinewidth=1, capsize=0, color='black')#, label=l4dots)
 
         plt.legend(loc=3, fontsize=12)
-        plt.xticks([0.1, 1, 10], [0.1, 1, 10])
+        plt.xticks([0.1, 1, 10, 100], [0.1, 1, 10, 100])
         #plt.gca().set_aspect('auto', 'box')
         
         #plt.show()
@@ -374,20 +400,16 @@ def draw_84_panels():
 
     NNN = 84
     
-    #size = 6
+    size = 6
 
-    #plt.figure(figsize=((size)*7+6*3, 5*12+11*2.5))
+    plt.figure(figsize=((size)*7+6*3, 5*12+11*2.5))
     plt.tight_layout()
     
     for cl_num in tqdm(clusters.index[:NNN]):
         
-        #plt.subplot(12, 7, np.where(np.array(clusters.index[:NNN]) == cl_num)[0][0]+1)
+        plt.subplot(12, 7, np.where(np.array(clusters.index[:NNN]) == cl_num)[0][0]+1)
         
-        pho_hist = extract_photons_from_cluster(cl_num, r = 1, draw=False)
-        
-        brightness_profile(r500r = 50, hist = pho_hist)
-        
-        plt.show()
+        pho_hist, plist = extract_photons_from_cluster(cl_num, r = 1, draw=True, delete_superfluous=True)
 
 
 def calc_l_T(T, T_left, T_right, Xplot=False):
