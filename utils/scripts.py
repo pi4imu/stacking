@@ -153,7 +153,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         for vic in vicenter:
             #print(vic)
             #display(SLICE1)
-            SLICE1["to_del"] = np.where( ((SLICE1["RA"]-vic[0])**2 + (SLICE1["DEC"]-vic[1])**2 < 2*vic[2]**2), True, False)
+            SLICE1["to_del"] = np.where( ((SLICE1["RA"]-vic[0])**2 + (SLICE1["DEC"]-vic[1])**2 < 1*vic[2]**2), True, False)
             #display(SLICE1)
             MASK = pd.concat([MASK, SLICE1[SLICE1['to_del'] == True]], axis=0)
             SLICE1 = SLICE1[SLICE1['to_del'] == False]
@@ -162,14 +162,25 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
             SLICE1 = SLICE1.drop("to_del", axis=1)
             #display(MASK)
             
+        MASK["RA_pix"] =  (MASK["RA"]  - cntr[0] + 10*R)*3600/ang_res # - 1
+        MASK["DEC_pix"] = (MASK["DEC"] - cntr[1] + 10*R)*3600/ang_res # - 1
+            
+        MASK["RA_pix"] = MASK["RA_pix"].astype(int) #- 2000
+        MASK["DEC_pix"] = MASK["DEC_pix"].astype(int) #- 2000
+            
+        display(MASK)    
+        
+        nmhg_mask = np.zeros((histlen, histlen))
+        
+        nmhg_mask[MASK["RA_pix"], MASK["DEC_pix"]] = 2
     
-        nmhg_mask, _, _ = np.histogram2d(MASK["RA"], MASK["DEC"],
-                                              bins=histlen, #int(2*half_size*3600/ang_res),
-                                              #norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1),
-                                              range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
-                                                              (cntr[1]-half_size, cntr[1]+half_size)]))
+        #nmhg_mask, _, _ = np.histogram2d(MASK["RA"], MASK["DEC"],
+        #                                      bins=histlen, #int(2*half_size*3600/ang_res),
+        #                                      #norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1),
+        #                                      range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
+        #                                                      (cntr[1]-half_size, cntr[1]+half_size)]))
                                               
-        nmhg_mask = np.where(nmhg_mask > 0, 1000, False)
+        #nmhg_mask = np.where(nmhg_mask > 0, 1000, False)
                 
     if not ARF_weights:
     
@@ -217,15 +228,15 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
         plt.scatter(RA_c, DEC_c, color='magenta', label = 'Catalogue')
         plt.scatter(cntr[0], cntr[1], color='orangered', label = 'Centroid')
         
-        #if delete_superfluous:
+        if delete_superfluous:
                  
          #   for vv in vicenter_gal:
          #       plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=7)
                                                        
-            #for vv in vicenter:
-                #plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=7)
+            for vv in vicenter:
+                plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=7)
                 
-                #plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', linestyle="--", lw=1, fill = False))
+                plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', linestyle="--", lw=1, fill = False))
                 
                         
         #plt.gca().add_patch(plt.Circle((RA_c, DEC_c), R_vir, color='dodgerblue', linestyle="--", lw=3, fill = False))
