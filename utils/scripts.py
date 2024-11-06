@@ -2,7 +2,7 @@
 
 # returns list of photons inside chosen radius
 
-def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delete_superfluous=False, draw=True, histlen=2001, withagn=False, ARF_weights=False):
+def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, delete_superfluous=False, draw=True, histlen=2001, withagn=False, ARF_weights=False):
 
     # there are several cases of SAME ihal for DIFFERENT cluster numbers
     # this is the reason for using cluster number as a counter
@@ -140,7 +140,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
                                               #norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1),
                                               range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
                                                               (cntr[1]-half_size, cntr[1]+half_size)]),
-                                              weights=sl["EFF_AREA"])
+                                              weights=sl["EFF_AREA"], density=True)
         LINTHRESH = 0.0001
         
     axesforsmooth = [nmhg_x[0], nmhg_x[-1], nmhg_y[0], nmhg_y[-1]]    # for drawing
@@ -201,7 +201,7 @@ def extract_photons_from_cluster(current_cluster_number, r, centroid=True, delet
             circle_mask = create_circle_mask(ra_pix, dec_pix, radius_pix, len(nmhg_mask))
             nmhg_mask = nmhg_mask + circle_mask
         
-        nmhg_mask[nmhg_mask == 2.] = True   
+        nmhg_mask[nmhg_mask > 1] = True   
         nmhg_mask = np.rot90(nmhg_mask)         # some magic
 
     
@@ -370,27 +370,43 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False)
         
         ring = koltso(setka_bins[i], setka_bins[i+1], c2, hist, r_pixels_max-1)       # returns both ring and mask for it
         
+        ####     hist*ring[1] = ring[0] ---- fact
+        
         if np.any(mmmask == 'no'):
             nbvc = np.array([0.])
         else:
-            nbvc = ring[1]*mmmask            # reduce the area of mask for ring 
+            nbvc = ring[1]*(mmmask)            # reduce the area of mask for ring 
         
-        if False:
+        cheese = ring[1] - nbvc        
+        
+        if False and np.any(mmmask != 'no'):
             print('Total brightness inside the ring:', ring[0].sum())
-            print('Total area of ring:', sum(ring[1].flatten()))
+            print('Total area of ring in pixels:', sum(ring[1].flatten()))
             print('Area to exclude:', sum(nbvc.flatten()))
+            print('Total brightness after filtering:', sum( (hist*cheese).flatten() ) )
             print('Total area of ring excluding masked regions:', sum(ring[1].flatten())-sum(nbvc.flatten()))
             
-            # change to ring[1] if you want to see deleted regions explicitly (don't forget to apply mask)
-            plt.imshow(nbvc, origin='lower')#, norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
+            plt.figure(figsize=(8,8))
+            plt.subplot(221)
+            plt.imshow(ring[1]+3*mmmask, origin='lower')# norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
+            plt.subplot(222)
+            plt.imshow(ring[0]+mmmask*5, origin='lower', norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
+            plt.subplot(223)
+            plt.imshow(cheese, origin='lower')#, norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
+            plt.subplot(224)
+            plt.imshow(hist*cheese, origin='lower', norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
             plt.show()
+            plt.figure(figsize=(6, 6))
         
         #print(ring[0].sum(), sum(ring[1].flatten()))
         #print()
         
-        br = ring[0].sum()/(sum(ring[1].flatten())-sum(nbvc.flatten()))      # (pix_in_k2-pix_in_k1)
+        br = (hist*cheese).sum()/sum(cheese.flatten())
+        
+        #ring[0].sum()/(sum(ring[1].flatten())-sum(nbvc.flatten()))      # (pix_in_k2-pix_in_k1)
         
         #br = br*factor
+        
         
         brightness.append(br)
         
@@ -421,7 +437,7 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False)
                      np.array(brightness), 
                      xerr=err/r500r*(10*998/1000), linewidth=0, marker='o', markersize=3, alpha=0.95,
                      elinewidth=1, capsize=0, color='black')#, label=l4dots)
-
+        #plt.ylim(1e-5, 5e-1)
         plt.legend(loc=3, fontsize=12)
         plt.xticks([0.1, 1, 10, 100], [0.1, 1, 10, 100])
         #plt.gca().set_aspect('auto', 'box')
