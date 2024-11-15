@@ -203,7 +203,9 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         
         nmhg_mask[nmhg_mask > 1] = True   
         nmhg_mask = np.rot90(nmhg_mask)         # some magic
-
+        
+        nmhg_unfiltered = nmhg
+        nmhg = nmhg_unfiltered * (1-nmhg_mask)
     
     # important rescaling
     
@@ -215,10 +217,6 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     #factor=1
 
     nmhg = nmhg*factor
-    
-    if delete_superfluous:
-        nmhg_unfiltered = nmhg
-        nmhg = nmhg*(1-nmhg_mask)
     
     if draw:
            
@@ -284,7 +282,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         #plt.show()
 
     if delete_superfluous:
-        return nmhg_unfiltered, nmhg_mask
+        return nmhg_unfiltered, 1-nmhg_mask
     else:
         return nmhg
 
@@ -335,6 +333,23 @@ def koltso(r_in, r_out, mm, NMHG, d_pixels):
     return NMHG * mask, mask
     
     
+def wedge(n, l=2001):
+
+    w = np.zeros((l,l))
+    
+    if n == 1:
+        w[:l//2, l//2:] = 1
+    elif n == 2:
+        w[:l//2, :l//2] = 1
+    elif n == 3:
+        w[l//2:, :l//2] = 1
+    elif n == 4:
+        w[l//2:, l//2:] = 1
+    else:
+        print("?")
+     
+    return w
+    
 def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False):
     
     #if clnumber != 'all':
@@ -358,6 +373,8 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False)
     c2 = [r_pixels_max, r_pixels_max]            # center of field
     err = np.diff(setka_bins)/2                  # just bins width
     brightness = []
+    
+    br1, br2, br3, br4 = [], [], [], []
         
     for i in tqdm(range(0, len(setka_bins)-1)):
 
@@ -375,7 +392,7 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False)
         if np.any(mmmask == 'no'):
             nbvc = np.array([0.])
         else:
-            nbvc = ring[1]*(mmmask)            # reduce the area of mask for ring 
+            nbvc = ring[1]*(1-mmmask)            # reduce the area of mask for ring 
         
         cheese = ring[1] - nbvc        
         
@@ -388,9 +405,9 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False)
             
             plt.figure(figsize=(8,8))
             plt.subplot(221)
-            plt.imshow(ring[1]+3*mmmask, origin='lower')# norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
+            plt.imshow(ring[1]+3*(1-mmmask), origin='lower')# norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
             plt.subplot(222)
-            plt.imshow(ring[0]+mmmask*5, origin='lower', norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
+            plt.imshow(ring[0]+(1-mmmask)*5, origin='lower', norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
             plt.subplot(223)
             plt.imshow(cheese, origin='lower')#, norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
             plt.subplot(224)
@@ -405,11 +422,29 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False)
         
         #ring[0].sum()/(sum(ring[1].flatten())-sum(nbvc.flatten()))      # (pix_in_k2-pix_in_k1)
         
-        #br = br*factor
+    #br = br*factor
         
+        cw = cheese*wedge(1)
+        brw1 = (hist*cw).sum()/sum(cw.flatten())
+        cw = cheese*wedge(2)
+        brw2 = (hist*cw).sum()/sum(cw.flatten())
+        cw = cheese*wedge(3)
+        brw3 = (hist*cw).sum()/sum(cw.flatten())
+        cw = cheese*wedge(4)
+        brw4 = (hist*cw).sum()/sum(cw.flatten())
         
         brightness.append(br)
+        br1.append(brw1)
+        br2.append(brw2)
+        br3.append(brw3)
+        br4.append(brw4)
         
+    #print(br1, br2, br3, br4)
+    
+    meanbr = [np.mean([a, b, c, d]) for a,b,c,d in zip(br1, br2, br3, br4)]
+    stdbr = [np.std([a, b, c, d]) for a,b,c,d in zip(br1, br2, br3, br4)]
+    
+    print(meanbr, stdbr)
     #print(brightness)
     #print(np.array(setka)/r500r*(10*998/1000))
     #print(len(setka), len(brightness))
@@ -441,8 +476,13 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False)
         plt.legend(loc=3, fontsize=12)
         plt.xticks([0.1, 1, 10, 100], [0.1, 1, 10, 100])
         #plt.gca().set_aspect('auto', 'box')
-        
         #plt.show()
+    
+        plt.errorbar(np.array(setka)/r500r*(10*998/1000),
+                     meanbr, 
+                     yerr=stdbr, fmt='o', capsize=5, capthick=2, 
+             elinewidth=2, color='blue', ecolor='lightblue', 
+             label='Mean with Error Bars')
     
     return brightness
     
