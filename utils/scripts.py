@@ -2,7 +2,7 @@
 
 # returns list of photons inside chosen radius
 
-def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, delete_superfluous=False, draw=True, histlen=2001, withagn=False, ARF_weights=False):
+def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, delete_superfluous=False, draw=True, histlen=2001, withagn=False, ARF_weights=True):
 
     # there are several cases of SAME ihal for DIFFERENT cluster numbers
     # this is the reason for using cluster number as a counter
@@ -221,7 +221,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     if draw:
            
         trtr = plt.imshow(np.rot90(nmhg),
-                          #convolve(np.rot90(nmhg), Gaussian2DKernel(1)), 
+                          #convolve(np.rot90(nmhg), Gaussian2DKernel(2)), 
                           norm=matplotlib.colors.SymLogNorm(linthresh=LINTHRESH, linscale=1), 
                           origin='upper',
                           extent = axesforsmooth)     
@@ -350,7 +350,7 @@ def wedge(n, l=2001):
      
     return w
     
-def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False):
+def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False, errors=True):
     
     #if clnumber != 'all':
     #    current_cluster = clusters.loc[clnumber]
@@ -366,8 +366,8 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False)
     #    factor = 1
     
     r_pixels_max = int(len(hist)/2) # 5*r500r    # depends on field size
-    r500r = int(r_pixels_max/field_length)       # field length in units of R500
-    setka_bins = np.append([0, 1, 2, 3, 4], 
+    r500r = int(r_pixels_max/(field_length/2))       # field length in units of R500
+    setka_bins = np.append([1, 2, 3, 4], 
                            np.geomspace(5, r_pixels_max, 20)) # .astype(int)       # borders of bins
     setka = [(a+b)/2 for a, b in zip(setka_bins[:-1], setka_bins[1:])]             # centers of bins
     c2 = [r_pixels_max, r_pixels_max]            # center of field
@@ -389,14 +389,15 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False)
         
         ####     hist*ring[1] = ring[0] ---- fact
         
-        if np.any(mmmask == 'no'):
+        if isinstance(mmmask, str):
             nbvc = np.array([0.])
+            mmmask = np.ones_like(hist)
         else:
             nbvc = ring[1]*(1-mmmask)            # reduce the area of mask for ring 
         
         cheese = ring[1] - nbvc        
         
-        if False and np.any(mmmask != 'no'):
+        if False:
             print('Total brightness inside the ring:', ring[0].sum())
             print('Total area of ring in pixels:', sum(ring[1].flatten()))
             print('Area to exclude:', sum(nbvc.flatten()))
@@ -407,7 +408,7 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False)
             plt.subplot(221)
             plt.imshow(ring[1]+3*(1-mmmask), origin='lower')# norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
             plt.subplot(222)
-            plt.imshow(ring[0]+(1-mmmask)*5, origin='lower', norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
+            plt.imshow(ring[0], origin='lower', norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
             plt.subplot(223)
             plt.imshow(cheese, origin='lower')#, norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
             plt.subplot(224)
@@ -423,22 +424,26 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False)
         #ring[0].sum()/(sum(ring[1].flatten())-sum(nbvc.flatten()))      # (pix_in_k2-pix_in_k1)
         
     #br = br*factor
-        
-        cw = cheese*wedge(1)
-        brw1 = (hist*cw).sum()/sum(cw.flatten())
-        cw = cheese*wedge(2)
-        brw2 = (hist*cw).sum()/sum(cw.flatten())
-        cw = cheese*wedge(3)
-        brw3 = (hist*cw).sum()/sum(cw.flatten())
-        cw = cheese*wedge(4)
-        brw4 = (hist*cw).sum()/sum(cw.flatten())
-        
+             
+        if errors:
+            cw = cheese*wedge(1)
+            brw1 = (hist*cw).sum()/sum(cw.flatten())
+            cw = cheese*wedge(2)
+            #print(cw)
+            brw2 = (hist*cw).sum()/sum(cw.flatten())
+            #print(brw2)
+            cw = cheese*wedge(3)
+            brw3 = (hist*cw).sum()/sum(cw.flatten())
+            cw = cheese*wedge(4)
+            brw4 = (hist*cw).sum()/sum(cw.flatten())
+            
+            br1.append(brw1)
+            br2.append(brw2)
+            br3.append(brw3)
+            br4.append(brw4)
+            
         brightness.append(br)
-        br1.append(brw1)
-        br2.append(brw2)
-        br3.append(brw3)
-        br4.append(brw4)
-        
+    
     #print(br1, br2, br3, br4)
     
     meanbr = [np.mean([a, b, c, d]) for a,b,c,d in zip(br1, br2, br3, br4)]
@@ -461,13 +466,13 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False)
         plt.xscale("log")
         plt.yscale("log")
 
-        plt.axvline(10*998/1000, linestyle='--', color='orangered', label='$R_{500c}$', lw=2)
-        plt.axvline(10*998/1000*1.6, linestyle='--', color='dodgerblue', label='$R_{200c} = 1.6 \cdot R_{500c}$', lw=2)
-        plt.axvline(10*998/1000*2.7, linestyle='--', color='green', label='$R_{200m} = 2.7 \cdot R_{500c}$', lw=2)
-        plt.axvline(10*998/1000*8.1, linestyle='--', color='magenta', label='$R_{ta} = 8.1 \cdot R_{500c}$', lw=2)
+        plt.axvline(10*998/1000, linestyle='--', color='orangered', label='$R_{500c}$', lw=1)
+        plt.axvline(10*998/1000*1.6, linestyle='--', color='dodgerblue', label='$R_{200c} = 1.6 \cdot R_{500c}$', lw=1)
+        plt.axvline(10*998/1000*2.7, linestyle='--', color='green', label='$R_{200m} = 2.7 \cdot R_{500c}$', lw=1)
+        plt.axvline(10*998/1000*8.1, linestyle='--', color='magenta', label='$R_{ta} = 8.1 \cdot R_{500c}$', lw=1)
 
         #plt.scatter(setka[:-1]/r500r*(10*998/1000), np.array(brightness)/10000, color='black', s=7)
-        
+
         plt.errorbar(np.array(setka)/r500r*(10*998/1000), 
                      np.array(brightness), 
                      xerr=err/r500r*(10*998/1000), linewidth=0, marker='o', markersize=3, alpha=0.95,
@@ -478,12 +483,15 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False)
         #plt.gca().set_aspect('auto', 'box')
         #plt.show()
     
-        plt.errorbar(np.array(setka)/r500r*(10*998/1000),
-                     meanbr, 
-                     yerr=stdbr, fmt='o', capsize=5, capthick=2, 
-             elinewidth=2, color='blue', ecolor='lightblue', 
-             label='Mean with Error Bars')
-    
+        if errors:
+            plt.errorbar(np.array(setka)/r500r*(10*998/1000), meanbr, yerr=stdbr, 
+                         fmt='.', capsize=0, capthick=1, elinewidth=1, color='black', ecolor='black')
+                         
+        #plt.plot(np.array(setka)/r500r*(10*998/1000), np.array(br1))
+        #plt.plot(np.array(setka)/r500r*(10*998/1000), np.array(br2))
+        #plt.plot(np.array(setka)/r500r*(10*998/1000), np.array(br3))
+        #plt.plot(np.array(setka)/r500r*(10*998/1000), np.array(br4))
+        
     return brightness
     
 
@@ -500,7 +508,7 @@ def draw_84_panels():
         
         plt.subplot(12, 7, np.where(np.array(clusters.index[:NNN]) == cl_num)[0][0]+1)
         
-        pho_hist, plist = extract_photons_from_cluster(cl_num, r = 1, draw=True, delete_superfluous=True)
+        pho_hist = extract_photons_from_cluster(cl_num, draw=True, delete_superfluous=False)
 
 
 def calc_l_T(T, T_left, T_right, Xplot=False):
@@ -619,3 +627,36 @@ def kruzhok_old(r_pixels, mm, NMHG, d_pixels):
     mask = dist_from_center <= r_pixels
         
     return mask*kusok, mask
+    
+    
+def draw_total_hist(hhhh):
+  
+    length = len(hhhh)
+
+    half_length = int(length/2)
+    r500r = int(half_length/10)
+
+    plt.imshow(np.rot90(hhhh), norm=matplotlib.colors.SymLogNorm(linthresh=0.0001, linscale=1), origin='upper')
+    plt.colorbar(fraction=0.046, pad=0.04)
+    #cb.set_label(f"Counts s$^{{-1}}$ arcmin$^{{-2}}$", size=13)
+
+    plt.gca().add_patch(plt.Circle((half_length, half_length), r500r, 
+                                color='orangered', linestyle="--", lw=3, fill = False))
+    plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*1.6, 
+                                color='dodgerblue', linestyle="--", lw=3, fill = False))
+    plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*2.7, 
+                                color='white', linestyle="--", lw=3, fill = False))
+    plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*8.1, 
+                                color='grey', linestyle="--", lw=3, fill = False))
+
+    x_s = (plt.gca().get_xlim()[1]+plt.gca().get_xlim()[0])/2
+    y_s = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.95+plt.gca().get_ylim()[0]
+    y_S = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.90+plt.gca().get_ylim()[0]   
+    plt.plot((x_s+r500r/2, x_s-r500r/2), (y_s, y_s), color='white')
+    plt.text(x_s, y_S, f'10 arcmin $\\approx$ 1 Mpc', 
+            color='white', ha='center', va='center')
+
+    plt.xlabel("$20 \\times R_{500}$", fontsize=12)
+    plt.ylabel("$20 \\times R_{500}$", fontsize=12)
+
+    plt.show()

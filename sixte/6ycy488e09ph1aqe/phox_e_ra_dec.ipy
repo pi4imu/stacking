@@ -1,0 +1,27 @@
+from astropy.io import fits
+import matplotlib
+import matplotlib.pyplot as plt
+from astropy.table import Table
+import numpy as np
+import sys
+filename=sys.argv[1]
+
+#get the image matrix and show info
+f=fits.open(filename)
+phox=f[2]
+f.verify('fix') 
+f.info()
+
+#show the header of the image
+print ('\n'.join([''+key+' = '+str(phox.header[key])  for key in phox.header
+if key!='COMMENT']))
+   
+E = phox.data.field(0) 
+RA = phox.data.field(1)
+DEC = phox.data.field(2)
+
+plt.hist2d(RA, DEC, weights=E, bins=40)
+plt.colorbar(label='Energy [KeV]')
+plt.xlabel('RA')
+plt.ylabel('DEC')
+plt.show()
