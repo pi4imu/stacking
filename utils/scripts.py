@@ -146,6 +146,17 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     axesforsmooth = [nmhg_x[0], nmhg_x[-1], nmhg_y[0], nmhg_y[-1]]    # for drawing
       
     ang_res = 2*half_size*3600 / histlen               # new value instead of 4'' by default    
+
+    # important rescaling
+    
+    nmhg = nmhg / 1000 / 10000 / ang_res**2 * 60**2
+        
+    f1 = 10/(R_500_rescaled*60)
+    f2 = E(ztrue)**(-4)*(1+ztrue)
+    factor = f1*f2
+    #factor=1
+
+    nmhg = nmhg*factor
     
     
     # deleting less massive haloes
@@ -206,17 +217,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         
         nmhg_unfiltered = nmhg
         nmhg = nmhg_unfiltered * (1-nmhg_mask)
-    
-    # important rescaling
-    
-    nmhg = nmhg / 1000 / 10000 / ang_res**2 * 60**2
         
-    f1 = 10/(R_500_rescaled*60)
-    f2 = E(ztrue)**(-4)*(1+ztrue)
-    factor = f1*f2
-    #factor=1
-
-    nmhg = nmhg*factor
     
     if draw:
            
@@ -350,7 +351,7 @@ def wedge(n, l=2001):
      
     return w
     
-def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False, errors=True):
+def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False, errors=False):
     
     #if clnumber != 'all':
     #    current_cluster = clusters.loc[clnumber]
@@ -367,7 +368,7 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False,
     
     r_pixels_max = int(len(hist)/2) # 5*r500r    # depends on field size
     r500r = int(r_pixels_max/(field_length/2))       # field length in units of R500
-    setka_bins = np.append([1, 2, 3, 4], 
+    setka_bins = np.append([0, 1, 2, 3, 4], 
                            np.geomspace(5, r_pixels_max, 20)) # .astype(int)       # borders of bins
     setka = [(a+b)/2 for a, b in zip(setka_bins[:-1], setka_bins[1:])]             # centers of bins
     c2 = [r_pixels_max, r_pixels_max]            # center of field
@@ -449,7 +450,7 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False,
     meanbr = [np.mean([a, b, c, d]) for a,b,c,d in zip(br1, br2, br3, br4)]
     stdbr = [np.std([a, b, c, d]) for a,b,c,d in zip(br1, br2, br3, br4)]
     
-    print(meanbr, stdbr)
+    #print(meanbr, stdbr)
     #print(brightness)
     #print(np.array(setka)/r500r*(10*998/1000))
     #print(len(setka), len(brightness))
@@ -484,7 +485,7 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False,
         #plt.show()
     
         if errors:
-            plt.errorbar(np.array(setka)/r500r*(10*998/1000), meanbr, yerr=stdbr, 
+            plt.errorbar(np.array(setka)/r500r*(10*998/1000), meanbr, yerr=stdbr,
                          fmt='.', capsize=0, capthick=1, elinewidth=1, color='black', ecolor='black')
                          
         #plt.plot(np.array(setka)/r500r*(10*998/1000), np.array(br1))
