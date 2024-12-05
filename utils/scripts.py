@@ -210,7 +210,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
             radius_pix = radius_pix.astype(int)
             
             circle_mask = create_circle_mask(ra_pix, dec_pix, radius_pix, len(nmhg_mask))
-            nmhg_mask = nmhg_mask + circle_mask
+            if circle_mask[int(histlen/2), int(histlen/2)] == 0:
+                nmhg_mask = nmhg_mask + circle_mask
         
         nmhg_mask[nmhg_mask > 1] = True   
         nmhg_mask = np.rot90(nmhg_mask)         # some magic
