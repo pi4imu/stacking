@@ -151,8 +151,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     
     nmhg = nmhg / 1000 / 10000 / ang_res**2 * 60**2
         
-    f1 = 10/(R_500_rescaled*60)
-    f2 = E(ztrue)**(-4)*(1+ztrue)
+    f1 = R_500/1000 # 10/(R_500_rescaled*60)
+    f2 = E(ztrue)**(-4)*(1+ztrue)**3
     factor = f1*f2
     #factor=1
 
@@ -261,7 +261,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         plt.yticks(size=13)
         cb = plt.colorbar(trtr, fraction=0.046, pad=0.04)
         cb.ax.tick_params(labelsize=13)
-     
+        
         if not ARF_weights:
             cb.set_label(f"Photons cm$^{{-2}}$ s$^{{-1}}$ arcmin$^{{-2}}$", size=13)
         else:
@@ -461,7 +461,7 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False,
         plt.xlabel("Radius, arcmin", fontsize=12)  # "Radius in units of $R_{500}$")
         
         if not ARF_weights:
-             plt.ylabel("Photons cm$^{{-2}}$ s$^{{-1}}$ arcmin$^{{-2}}$", fontsize=12) # "Brightness in relative units")
+            plt.ylabel("Photons cm$^{{-2}}$ s$^{{-1}}$ arcmin$^{{-2}}$", fontsize=12) # "Brightness in relative units")
         else:
             plt.ylabel("Counts s$^{{-1}}$ arcmin$^{{-2}}$", fontsize=12) # "Brightness in relative units")
         

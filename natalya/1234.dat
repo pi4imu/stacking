@@ -1,0 +1,6 @@
+#	Mass	Redshift	R500,arcmin	R,kpc	filename
+1	5.9e14	0.1644		7.33		1241.3	fc10.1_Mass5.9e14_z016.radial
+2	3.54e14	0.0777		12.04		1062.3	fc10.2_Mass3.5e14_z008.radial
+3	4.34e14	0.0953		10.69		1133.7	fc10.3_Mass4.3e14_z01.radial	
+4	8.77e14	0.0894		14.33		1434.7	fc10.4_Mass8.8e14_z009.radial
+
