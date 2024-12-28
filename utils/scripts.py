@@ -12,7 +12,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     RA_c = current_cluster["x_pix"]*30-5
     DEC_c = current_cluster["y_pix"]*30-5
     R_vir = current_cluster["Rrel"]*30
-    R_500 = current_cluster["R500"]*0.704  # kpc
+    R_500 = current_cluster["R500"]/0.704  # kpc
     ztrue = current_cluster["z_true"]
     
     D_A = FlatLambdaCDM(H0=100*0.704, Om0=0.272).angular_diameter_distance(ztrue)*1000 # kpc
@@ -140,7 +140,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                                               #norm=matplotlib.colors.SymLogNorm(linthresh=1, linscale=1),
                                               range=np.array([(cntr[0]-half_size, cntr[0]+half_size),
                                                               (cntr[1]-half_size, cntr[1]+half_size)]),
-                                              weights=sl["EFF_AREA"], density=True)
+                                              weights=sl["EFF_AREA"], density=False)
         LINTHRESH = 0.0001
         
     axesforsmooth = [nmhg_x[0], nmhg_x[-1], nmhg_y[0], nmhg_y[-1]]    # for drawing
@@ -151,7 +151,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     
     nmhg = nmhg / 1000 / 10000 / ang_res**2 * 60**2
         
-    f1 = R_500/1000 # 10/(R_500_rescaled*60)
+    f1 = 1000/R_500 # 10/(R_500_rescaled*60)
     f2 = E(ztrue)**(-4)*(1+ztrue)**3
     factor = f1*f2
     #factor=1
@@ -352,40 +352,29 @@ def wedge(n, l=2001):
      
     return w
     
-def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False, errors=False):
+def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF_weights=False, errors=False):
     
-    #if clnumber != 'all':
-    #    current_cluster = clusters.loc[clnumber]
-    #    #print(current_cluster)
-    #    R_500 = current_cluster["R500"]*0.704  # kpc
-    #    ztrue = current_cluster["z_true"]
-    #    D_A = FlatLambdaCDM(H0=100*0.704, Om0=0.272).angular_diameter_distance(ztrue)*1000 # kpc
-    #    R_500_rescaled = R_500/D_A.value*180/np.pi # degrees  
-    #    f1 = 10/R_500_rescaled
-    #    f2 = E(ztrue)**(-4)*(1+ztrue)
-    #    factor = f1*f2   
-    #else:
-    #    factor = 1
+    print(clusternumber)
+    cc = clusters.loc[clusternumber]
+    R_500 = cc["R500"]/0.704  # kpc
+    ztrue = cc["z_true"]
+    D_A = FlatLambdaCDM(H0=100*0.704, Om0=0.272).angular_diameter_distance(ztrue)*1000 # kpc
+    R_500_rescaled = R_500/D_A.value*180/np.pi*60      # arcmin
+    print(R_500_rescaled)
+    ang_res = 2*10*R_500_rescaled*60 / len(hist)    # arseconds
+    print(ang_res)
     
-    r_pixels_max = int(len(hist)/2) # 5*r500r    # depends on field size
-    r500r = int(r_pixels_max/(field_length/2))       # field length in units of R500
+    r_pixels_max = int(len(hist)/2)                  # depends on field size
+    r500r = int(r_pixels_max/(field_length/2))       # field length should be in units of R500
     setka_bins = np.append([0, 1, 2, 3, 4], 
                            np.geomspace(5, r_pixels_max, 20)) # .astype(int)       # borders of bins
     setka = [(a+b)/2 for a, b in zip(setka_bins[:-1], setka_bins[1:])]             # centers of bins
-    c2 = [r_pixels_max, r_pixels_max]            # center of field
-    err = np.diff(setka_bins)/2                  # just bins width
+    c2 = [r_pixels_max, r_pixels_max]                # center of field
+    err = np.diff(setka_bins)/2                      # just bins width
     brightness = []
-    
-    br1, br2, br3, br4 = [], [], [], []
+    br1, br2, br3, br4 = [], [], [], []              # in 4 wedges
         
     for i in tqdm(range(0, len(setka_bins)-1)):
-
-        #k1 = kruzhok(setka_bins[i], c2, hist, r_pixels_max-1)
-        #k2 = kruzhok(setka_bins[i+1], c2, hist, r_pixels_max-1)
-        #ring = k2[0]-k1[0]
-        #pix_in_k1 = sum(k1[1].flatten())
-        #pix_in_k2 = sum(k2[1].flatten())
-        #print(pix_in_k1, pix_in_k2)
         
         ring = koltso(setka_bins[i], setka_bins[i+1], c2, hist, r_pixels_max-1)       # returns both ring and mask for it
         
@@ -425,7 +414,7 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False,
         
         #ring[0].sum()/(sum(ring[1].flatten())-sum(nbvc.flatten()))      # (pix_in_k2-pix_in_k1)
         
-    #br = br*factor
+        brightness.append(br)
              
         if errors:
             cw = cheese*wedge(1)
@@ -444,8 +433,6 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False,
             br3.append(brw3)
             br4.append(brw4)
             
-        brightness.append(br)
-    
     #print(br1, br2, br3, br4)
     
     meanbr = [np.mean([a, b, c, d]) for a,b,c,d in zip(br1, br2, br3, br4)]
@@ -455,6 +442,10 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False,
     #print(brightness)
     #print(np.array(setka)/r500r*(10*998/1000))
     #print(len(setka), len(brightness))
+    
+    # Actually R500inmin should be since 10*998/1000  # this is because of 343 Mpc: 10 / (1/343*180/pi*60) = 10 / 10.022 = 0.998 
+    
+    R500inmin = 10 # R_500_rescaled
     
     if draw:
         
@@ -468,16 +459,16 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False,
         plt.xscale("log")
         plt.yscale("log")
 
-        plt.axvline(10*998/1000, linestyle='--', color='orangered', label='$R_{500c}$', lw=1)
-        plt.axvline(10*998/1000*1.6, linestyle='--', color='dodgerblue', label='$R_{200c} = 1.6 \cdot R_{500c}$', lw=1)
-        plt.axvline(10*998/1000*2.7, linestyle='--', color='green', label='$R_{200m} = 2.7 \cdot R_{500c}$', lw=1)
-        plt.axvline(10*998/1000*8.1, linestyle='--', color='magenta', label='$R_{ta} = 8.1 \cdot R_{500c}$', lw=1)
+        plt.axvline(R500inmin, linestyle='--', color='orangered', label='$R_{500c}$', lw=1)
+        plt.axvline(R500inmin*1.6, linestyle='--', color='dodgerblue', label='$R_{200c} = 1.6 \cdot R_{500c}$', lw=1)
+        plt.axvline(R500inmin*2.7, linestyle='--', color='green', label='$R_{200m} = 2.7 \cdot R_{500c}$', lw=1)
+        plt.axvline(R500inmin*8.1, linestyle='--', color='magenta', label='$R_{ta} = 8.1 \cdot R_{500c}$', lw=1)
 
         #plt.scatter(setka[:-1]/r500r*(10*998/1000), np.array(brightness)/10000, color='black', s=7)
 
-        plt.errorbar(np.array(setka)/r500r*(10*998/1000), 
+        plt.errorbar(np.array(setka)/r500r*R500inmin, 
                      np.array(brightness), 
-                     xerr=err/r500r*(10*998/1000), linewidth=0, marker='o', markersize=3, alpha=0.95,
+                     xerr=err/r500r*R500inmin, linewidth=0, marker='o', markersize=3, alpha=0.95,
                      elinewidth=1, capsize=0, color='black')#, label=l4dots)
         #plt.ylim(1e-5, 5e-1)
         plt.legend(loc=3, fontsize=12)
@@ -486,13 +477,20 @@ def brightness_profile(hist, mmmask, field_length, draw=True, ARF_weights=False,
         #plt.show()
     
         if errors:
-            plt.errorbar(np.array(setka)/r500r*(10*998/1000), meanbr, yerr=stdbr,
+            plt.errorbar(np.array(setka)/r500r*R500inmin, meanbr, yerr=stdbr,
                          fmt='.', capsize=0, capthick=1, elinewidth=1, color='black', ecolor='black')
                          
         #plt.plot(np.array(setka)/r500r*(10*998/1000), np.array(br1))
         #plt.plot(np.array(setka)/r500r*(10*998/1000), np.array(br2))
         #plt.plot(np.array(setka)/r500r*(10*998/1000), np.array(br3))
         #plt.plot(np.array(setka)/r500r*(10*998/1000), np.array(br4))
+        
+        resc1 = lambda x: x/R500inmin
+        resc2 = lambda x: x*R500inmin
+        
+        ax2 = plt.gca().secondary_xaxis("top", functions=(resc1, resc2))
+        ax2.set_xlabel("Radius / R$_{500}$", fontsize=12)
+        ax2.set_xticks([0.01, 0.1, 1, 10], [0.01, 0.1, 1, 10])
         
     return brightness
     
