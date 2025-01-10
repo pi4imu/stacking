@@ -50,7 +50,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     #setting area and resolution for searching for center
     
     ang_res = 4                    # this value will be changed later 
-    halfsidelength = 10            # in units of R500
+    halfsidelength = 10           # in units of R500
     half_size = halfsidelength*R   # in degrees
             
     if not centroid:
@@ -273,7 +273,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         #print(plt.gca().get_xlim()*u.deg)
         #print(plt.gca().get_ylim()*u.deg)
         
-        plt.title(ttiittllee, fontsize=14)
+        plt.title(ttiittllee, fontsize=13)
         #cb.ax.set_yticklabels(['0', '1', '10', '100', '1000'])
         
         handles, labels = plt.gca().get_legend_handles_labels()
@@ -362,7 +362,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
     R_500_rescaled = R_500/D_A.value*180/np.pi*60      # arcmin
     print(R_500_rescaled)
     ang_res = 2*10*R_500_rescaled*60 / len(hist)    # arseconds
-    print(ang_res)
+    #print(ang_res)
     
     r_pixels_max = int(len(hist)/2)                  # depends on field size
     r500r = int(r_pixels_max/(field_length/2))       # field length should be in units of R500
@@ -465,7 +465,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         plt.axvline(R500inmin*8.1, linestyle='--', color='magenta', label='$R_{ta} = 8.1 \cdot R_{500c}$', lw=1)
 
         #plt.scatter(setka[:-1]/r500r*(10*998/1000), np.array(brightness)/10000, color='black', s=7)
-
+        print(np.array(setka)/r500r*R500inmin)
         plt.errorbar(np.array(setka)/r500r*R500inmin, 
                      np.array(brightness), 
                      xerr=err/r500r*R500inmin, linewidth=0, marker='o', markersize=3, alpha=0.95,
