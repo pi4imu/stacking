@@ -121,8 +121,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     SLICE1 = SLICE1[SLICE1['todraw'] == True]
     SLICE1 = SLICE1.drop("todraw", axis=1)
         
-    SLICE1 = SLICE1[SLICE1['ENERGY']>0.5]           # previosly 0.1-2.4
-    SLICE1 = SLICE1[SLICE1['ENERGY']<2.0]
+    SLICE1 = SLICE1[SLICE1['ENERGY']>0.3]           # previosly 0.3-2.3
+    SLICE1 = SLICE1[SLICE1['ENERGY']<2.3]
     
     
     # drawing without or with applying weights that are given by ARF
@@ -162,11 +162,11 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     
     nmhg = nmhg / 1000 / 10000 / ang_res**2 * 60**2
         
-    f1 = 1000/R_500                       # 10/(R_500_rescaled*60)
+    f1 = 1000/R_500
     f2 = E(ztrue)**(-4)*(1+ztrue)**3
     factor = f1*f2
-    
-    factor=1
+    print(factor)
+#    factor=1
 
     nmhg = nmhg*factor
         
@@ -362,6 +362,8 @@ def wedge(n, l=2001):
         print("?")
      
     return w
+
+
     
 def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF_weights=False, errors=False):
     
@@ -386,10 +388,11 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
     D_A = FlatLambdaCDM(H0=100*0.704, Om0=0.272).angular_diameter_distance(ztrue)*1000 # kpc
     R_500_rescaled = R_500/D_A.value*180/np.pi*60      # arcmin
 #    print(R_500_rescaled)
-    ang_res = 2*10*R_500_rescaled*60 / len(hist)    # arseconds
+    #ang_res = 2*10*R_500_rescaled*60 / len(hist)    # arseconds
 #    print(ang_res)
     
     r_pixels_max = int(len(hist)/2)                  # depends on field size
+
     r500r = int(r_pixels_max/(field_length/2))       # field length should be in units of R500
     setka_bins = np.append([0, 1, 2, 3, 4], 
                            np.geomspace(5, r_pixels_max, 20)) # .astype(int)       # borders of bins
@@ -401,6 +404,8 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
     brightness = []
     br1, br2, br3, br4 = [], [], [], []              # in 4 wedges
         
+    
+    
     for i in tqdm(range(0, len(setka_bins)-1)):
         
         ring = koltso(setka_bins[i], setka_bins[i+1], c2, hist, r_pixels_max-1)       # returns both ring and mask for it
@@ -473,7 +478,12 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
     # Actually R500inmin should be since 10*998/1000  
     # this is because of 343 Mpc: 10 / (1/343*180/pi*60) = 10 / 10.022 = 0.998 
     
-    R500inmin = R_500_rescaled
+    R500inmin = 10 # R_500_rescaled
+
+    rr = np.array(setka)/r500r*R500inmin 
+    dr = np.diff(setka_bins)/r500r*R500inmin
+    
+    #print(rr, dr)
     
     if draw:
         
@@ -494,14 +504,11 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
 
         #plt.scatter(setka[:-1]/r500r*(10*998/1000), np.array(brightness)/10000, color='black', s=7)
 #        print(np.array(setka)/r500r*R500inmin)
-        
-        rr = np.array(setka)/r500r*R500inmin 
-        dr = np.diff(setka_bins)/r500r*R500inmin
-        
+                
         plt.errorbar(np.array(setka)/r500r*R500inmin, 
                      np.array(brightness), 
                      xerr=err/r500r*R500inmin, linewidth=0, marker='o', markersize=3, alpha=0.95,
-                     elinewidth=1, capsize=0, color='black')#, label=l4dots)
+                     elinewidth=1, capsize=0, color='black', label='Stacked image')
         #plt.ylim(1e-5, 5e-1)
         plt.legend(loc=3, fontsize=12)
         plt.xticks([0.1, 1, 10, 100], [0.1, 1, 10, 100])
@@ -526,7 +533,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         
     # calculating luminosity
     
-    D_L = FlatLambdaCDM(H0=100*0.704, Om0=0.272).luminosity_distance(clusters.loc[cl_num]["z_true"]).value # Mpc
+    D_L = FlatLambdaCDM(H0=100*0.704, Om0=0.272).luminosity_distance(ztrue).value # Mpc
     
     N = np.sum(2*np.pi*rr[:16]*dr[:16]*brightness[:16])  # 16th position corresponds to ~R500
     
