@@ -165,8 +165,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     f1 = 1000/R_500
     f2 = E(ztrue)**(-4)*(1+ztrue)**3
     factor = f1*f2
-    print(factor)
 #    factor=1
+    #print(factor)
 
     nmhg = nmhg*factor
         
@@ -478,7 +478,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
     # Actually R500inmin should be since 10*998/1000  
     # this is because of 343 Mpc: 10 / (1/343*180/pi*60) = 10 / 10.022 = 0.998 
     
-    R500inmin = 10 # R_500_rescaled
+    R500inmin = 10 #R_500_rescaled
 
     rr = np.array(setka)/r500r*R500inmin 
     dr = np.diff(setka_bins)/r500r*R500inmin
