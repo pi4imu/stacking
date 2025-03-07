@@ -165,7 +165,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     f1 = 1000/R_500
     f2 = E(ztrue)**(-4)*(1+ztrue)**3
     factor = f1*f2
-#    factor=1
+    #factor=1
     #print(factor)
 
     nmhg = nmhg*factor
@@ -176,7 +176,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         
         # taking haloes only from the slice to which this cluster belongs 
         
-        VICINITY = np.where( ((clusters_all["x_pix"]*30-5 - c_x_1)**2 + (clusters_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2)  & ( np.abs(clusters_all["z_true"] - ztrue) < 0.017141 ) )
+        VICINITY = np.where( ((clusters_all["x_pix"]*30-5 - c_x_1)**2 + (clusters_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2) & ( np.abs(clusters_all["z_true"] - ztrue) < 0.017141 ) )
         #print(VICINITY)
         vclu = clusters_all.loc[VICINITY]  
         #display(vclu)
@@ -224,12 +224,16 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
             if circle_mask[int(histlen/2), int(histlen/2)] == 0:
                 nmhg_mask = nmhg_mask + circle_mask
         
+        if False:
+            pup = create_circle_mask(400, 700, 333, 2001)
+            nmhg_mask = nmhg_mask + pup
+                
         nmhg_mask[nmhg_mask > 1] = True   
         nmhg_mask = np.rot90(nmhg_mask)         # some magic
         
         nmhg_unfiltered = nmhg
         nmhg = nmhg_unfiltered * (1-nmhg_mask)
-        
+                
     
     if draw:
            
@@ -264,7 +268,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                                                        
             for vv in vicenter:
                 plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=3)
-                plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', linestyle="-", lw=1, fill = False))        
+                plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', ls="-", lw=1, fill=False))        
         
         plt.xlabel("RA, deg", size=13)
         plt.ylabel("DEC, deg", size=13)
@@ -297,7 +301,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     if delete_superfluous:
         return nmhg_unfiltered, 1-nmhg_mask
     else:
-        return nmhg
+        return nmhg #*(wedge(1)+wedge(2)+wedge(3)+wedge(4))
 
 
 def create_circle_mask(x_center, y_center, radius, N):
@@ -392,21 +396,16 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
 #    print(ang_res)
     
     r_pixels_max = int(len(hist)/2)                  # depends on field size
-
     r500r = int(r_pixels_max/(field_length/2))       # field length should be in units of R500
-    setka_bins = np.append([0, 1, 2, 3, 4], 
+    setka_bins = np.append([0, 2, 3, 4], 
                            np.geomspace(5, r_pixels_max, 20)) # .astype(int)       # borders of bins
-    
     setka = [(a+b)/2 for a, b in zip(setka_bins[:-1], setka_bins[1:])]             # centers of bins
-    
     c2 = [r_pixels_max, r_pixels_max]                # center of field
     err = np.diff(setka_bins)/2                      # just bins width
     brightness = []
-    br1, br2, br3, br4 = [], [], [], []              # in 4 wedges
-        
+    br1, br2, br3, br4 = [], [], [], []              # in 4 wedges    
     
-    
-    for i in tqdm(range(0, len(setka_bins)-1)):
+    for i in tqdm(range(0, len(setka))):
         
         ring = koltso(setka_bins[i], setka_bins[i+1], c2, hist, r_pixels_max-1)       # returns both ring and mask for it
         
@@ -503,9 +502,9 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         plt.axvline(R500inmin*8.1, linestyle='--', color='magenta', label='$R_{ta} = 8.1 \\cdot R_{500c}$', lw=1)
 
         #plt.scatter(setka[:-1]/r500r*(10*998/1000), np.array(brightness)/10000, color='black', s=7)
-#        print(np.array(setka)/r500r*R500inmin)
+        #print(np.array(setka)/r500r*R500inmin)
                 
-        plt.errorbar(np.array(setka)/r500r*R500inmin, 
+        plt.errorbar(rr, #                       np.array(setka)/r500r*R500inmin, 
                      np.array(brightness), 
                      xerr=err/r500r*R500inmin, linewidth=0, marker='o', markersize=3, alpha=0.95,
                      elinewidth=1, capsize=0, color='black', label='Stacked image')
@@ -516,13 +515,15 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         #plt.show()
     
         if errors:
-            plt.errorbar(np.array(setka)/r500r*R500inmin, meanbr, yerr=stdbr,
+            plt.errorbar(rr, meanbr, yerr=stdbr,
                          fmt='.', capsize=0, capthick=1, elinewidth=1, color='black', ecolor='black')
-                         
-        #plt.plot(np.array(setka)/r500r*(10*998/1000), np.array(br1))
-        #plt.plot(np.array(setka)/r500r*(10*998/1000), np.array(br2))
-        #plt.plot(np.array(setka)/r500r*(10*998/1000), np.array(br3))
-        #plt.plot(np.array(setka)/r500r*(10*998/1000), np.array(br4))
+        
+        # 4 different plot for 4 wedges:
+        if True:                 
+            plt.plot(rr, np.array(br1))
+            plt.plot(rr, np.array(br2))
+            plt.plot(rr, np.array(br3))
+            plt.plot(rr, np.array(br4))
         
         resc1 = lambda x: x/R500inmin
         resc2 = lambda x: x*R500inmin
