@@ -1,63 +1,71 @@
-def draw_all_profiles():
+def draw_stacked_image(histogram, r500r):
 
-    r_pixels_max = 1000 # 5*r500r    # depends on field size
-    r500r = int(r_pixels_max/10)
-    setka_bins = np.append([0, 1, 2, 3, 4],np.geomspace(5, r_pixels_max, 20))
-    setka = [(a+b)/2 for a, b in zip(setka_bins[:-1], setka_bins[1:])]  # centers of bins
-    err = np.diff(setka_bins)/2
-
-    yar = np.array(yarkosti.to_numpy()[8])*0
-
-    for i in range(0, len(yarkosti[::])):
+    plt.imshow(np.rot90(histogram), norm=matplotlib.colors.SymLogNorm(linthresh=0.00001, linscale=1), origin='upper')
     
-        one = yarkosti.to_numpy()[i]
-        
-        if one[0]==0 or one[1]==0:
-            #print(one)
-            llww=1
-        else:
-            llww=1
+    cb = plt.colorbar(fraction=0.046, pad=0.04)
+    cb.set_label(f"Counts s$^{{-1}}$ arcmin$^{{-2}}$", size=13)
+
+    plt.gca().add_patch(plt.Circle((half_length, half_length), r500r, 
+                               color='orangered', linestyle="--", lw=3, fill = False))
+    plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*1.6, 
+                               color='dodgerblue', linestyle="--", lw=3, fill = False))
+    plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*2.7, 
+                               color='white', linestyle="--", lw=3, fill = False))
+    plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*8.1, 
+                               color='grey', linestyle="--", lw=3, fill = False))
+
+    x_s = (plt.gca().get_xlim()[1]+plt.gca().get_xlim()[0])/2
+    y_s = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.95+plt.gca().get_ylim()[0]
+    y_S = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.90+plt.gca().get_ylim()[0]   
+    plt.plot((x_s+r500r/2, x_s-r500r/2), (y_s, y_s), color='white')
+    plt.text(x_s, y_S, f'10 arcmin $\\approx$ 1 Mpc', color='white', ha='center', va='center')
+
+    plt.xlabel("$20 \\times R_{500}$", fontsize=12)
+    plt.ylabel("$20 \\times R_{500}$", fontsize=12)
     
-        f1 = 1000/R500S[i]
-        f2 = E(reds[i])**(-4)*(1+reds[i])**3
-        factor = f1*f2
-        one = one*factor
-    
-        yar = yar + one
-    
-        plt.plot(np.array(setka)/r500r*(10*998/1000), 
-                 np.array(one), 
-                 linewidth=llww, marker='.', markersize=0, alpha=0.75,
-                 color='black')
-    
-    plt.plot(np.array(setka)/r500r*(10*998/1000), 
-             np.array(yar)/84, 
-             linewidth=3, marker='.', 
-             markersize=0, alpha=0.95,
-             color='orangered')
-
-    #plt.errorbar(np.array(setka)/r500r*(10*998/1000), 
-    #             np.array(yar)/84, 
-    #             xerr=err/r500r*(10*998/1000), 
-    #             linewidth=0, marker='.', 
-    #             markersize=3, alpha=0.95,
-    #             elinewidth=1, capsize=0, color='orangered')
-
-    plt.xlabel("Radius, arcmin", fontsize=12)  # "Radius in units of $R_{500}$")
-    plt.ylabel("Counts s$^{{-1}}$ arcmin$^{{-2}}$", fontsize=12) # "Brightness in relative units")
-
-    plt.xscale("log")
-    plt.yscale("log")
-
-    plt.axvline(10*998/1000, linestyle='--', color='orangered', label='$R_{500c}$', lw=2)
-    plt.axvline(10*998/1000*1.6, linestyle='--', color='dodgerblue', label='$R_{200c} = 1.6 \\cdot R_{500c}$', lw=2)
-    plt.axvline(10*998/1000*2.7, linestyle='--', color='green', label='$R_{200m} = 2.7 \\cdot R_{500c}$', lw=2)
-    plt.axvline(10*998/1000*8.1, linestyle='--', color='magenta', label='$R_{ta} = 8.1 \\cdot R_{500c}$', lw=2)
-
-    #plt.ylim(1e-8, 4e-2)
-
-    plt.legend(loc=3, fontsize=12)
-    plt.xticks([0.1, 1, 10, 100], [0.1, 1, 10, 100])
-    plt.gca().set_aspect('auto', 'box')
-       
     return None
+    
+def draw_stacked_profile(xxxx, yyyy, xxxx_error):
+
+        plt.errorbar(np.array(xxxx),
+                     np.array(yyyy), 
+                     xerr=err/r500r*R500inmin, linewidth=0, marker='o', markersize=3, alpha=0.95,
+                     elinewidth=1, capsize=0, color='black', label='Stacked image')
+
+        plt.xlabel("Radius, arcmin", fontsize=12)  # "Radius in units of $R_{500}$")
+        
+        if not ARF_weights:
+            plt.ylabel("Photons cm$^{{-2}}$ s$^{{-1}}$ arcmin$^{{-2}}$", fontsize=12) # "Brightness in relative units")
+        else:
+            plt.ylabel("Counts s$^{{-1}}$ arcmin$^{{-2}}$", fontsize=12) # "Brightness in relative units")
+        
+        plt.xscale("log")
+        plt.yscale("log")
+
+        plt.axvline(R500inmin, linestyle='--', color='orangered', label='$R_{500c}$', lw=1)
+        plt.axvline(R500inmin*1.6, linestyle='--', color='dodgerblue', label='$R_{200c} = 1.6 \\cdot R_{500c}$', lw=1)
+        plt.axvline(R500inmin*2.7, linestyle='--', color='green', label='$R_{200m} = 2.7 \\cdot R_{500c}$', lw=1)
+        plt.axvline(R500inmin*8.1, linestyle='--', color='magenta', label='$R_{ta} = 8.1 \\cdot R_{500c}$', lw=1)
+                
+        plt.legend(loc=3, fontsize=12)
+        plt.xticks([0.1, 1, 10, 100], [0.1, 1, 10, 100])
+    
+        if errors:
+            plt.errorbar(rr, meanbr, yerr=stdbr,
+                         fmt='.', capsize=0, capthick=1, elinewidth=1, color='black', ecolor='black')
+        
+        # 4 different plot for 4 wedges:
+        if True:                 
+            plt.plot(rr, np.array(br1))
+            plt.plot(rr, np.array(br2))
+            plt.plot(rr, np.array(br3))
+            plt.plot(rr, np.array(br4))
+        
+        resc1 = lambda x: x/R500inmin
+        resc2 = lambda x: x*R500inmin
+        
+        ax2 = plt.gca().secondary_xaxis("top", functions=(resc1, resc2))
+        ax2.set_xlabel("Radius / R$_{500}$", fontsize=12)
+        ax2.set_xticks([0.01, 0.1, 1, 10], [0.01, 0.1, 1, 10])
+        
+        return None

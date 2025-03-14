@@ -125,7 +125,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     SLICE1 = SLICE1[SLICE1['ENERGY']<2.3]
     
     
-    # drawing without or with applying weights that are given by ARF
+    # making histogram without or with applying weights that are given by ARF
     
     if not ARF_weights:
      
@@ -176,7 +176,9 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         
         # taking haloes only from the slice to which this cluster belongs 
         
-        VICINITY = np.where( ((clusters_all["x_pix"]*30-5 - c_x_1)**2 + (clusters_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2) & ( np.abs(clusters_all["z_true"] - ztrue) < 0.017141 ) )
+        VICINITY = np.where( ((clusters_all["x_pix"]*30-5 - c_x_1)**2 + 
+                              (clusters_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2) & 
+                              ( np.abs(clusters_all["z_true"] - ztrue) < 0.017141 ) )
         #print(VICINITY)
         vclu = clusters_all.loc[VICINITY]  
         #display(vclu)
@@ -186,7 +188,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
             vicinity_current = clusters_all.loc[clcl].drop(current_cluster_number)
 
             D_A_ = FlatLambdaCDM(H0=100*0.704, Om0=0.272).angular_diameter_distance(vicinity_current["z_true"])*1000 # kpc
-            R_500_ = vicinity_current["R500"]*0.704
+            R_500_ = vicinity_current["R500"]/ 0.704 / (1+zslice)
             R_500_s = R_500_/D_A_*180/np.pi # degrees
             
             vicenter = list(zip(vicinity_current["x_pix"].values*30-5, 
@@ -224,10 +226,22 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
             if circle_mask[int(histlen/2), int(histlen/2)] == 0:
                 nmhg_mask = nmhg_mask + circle_mask
         
-        if False:
-            pup = create_circle_mask(400, 700, 333, 2001)
-            nmhg_mask = nmhg_mask + pup
-                
+        if True:
+            
+            if (current_cluster_number == 17638):
+                pup = create_circle_mask(550, 950, 50, 2001)
+                vicenter.append(((2000-550)*ang_res/3600-half_size+cntr[0], 
+                                 950*ang_res/3600-half_size+cntr[1], 
+                                 50*ang_res/3600))
+                nmhg_mask = nmhg_mask + pup
+            
+            if (current_cluster_number == 18589):
+                pup = create_circle_mask(700, 1080, 50, 2001)
+                vicenter.append(((2000-700)*ang_res/3600-half_size+cntr[0], 
+                                 1080*ang_res/3600-half_size+cntr[1], 
+                                 50*ang_res/3600))
+                nmhg_mask = nmhg_mask + pup
+                       
         nmhg_mask[nmhg_mask > 1] = True   
         nmhg_mask = np.rot90(nmhg_mask)         # some magic
         
@@ -682,36 +696,3 @@ def kruzhok_old(r_pixels, mm, NMHG, d_pixels):
     mask = dist_from_center <= r_pixels
         
     return mask*kusok, mask
-    
-    
-def draw_total_hist(hhhh):
-  
-    length = len(hhhh)
-
-    half_length = int(length/2)
-    r500r = int(half_length/10)
-
-    plt.imshow(np.rot90(hhhh), norm=matplotlib.colors.SymLogNorm(linthresh=0.0001, linscale=1), origin='upper')
-    plt.colorbar(fraction=0.046, pad=0.04)
-    #cb.set_label(f"Counts s$^{{-1}}$ arcmin$^{{-2}}$", size=13)
-
-    plt.gca().add_patch(plt.Circle((half_length, half_length), r500r, 
-                                color='orangered', linestyle="--", lw=3, fill = False))
-    plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*1.6, 
-                                color='dodgerblue', linestyle="--", lw=3, fill = False))
-    plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*2.7, 
-                                color='white', linestyle="--", lw=3, fill = False))
-    plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*8.1, 
-                                color='grey', linestyle="--", lw=3, fill = False))
-
-    x_s = (plt.gca().get_xlim()[1]+plt.gca().get_xlim()[0])/2
-    y_s = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.95+plt.gca().get_ylim()[0]
-    y_S = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.90+plt.gca().get_ylim()[0]   
-    plt.plot((x_s+r500r/2, x_s-r500r/2), (y_s, y_s), color='white')
-    plt.text(x_s, y_S, f'10 arcmin $\\approx$ 1 Mpc', 
-            color='white', ha='center', va='center')
-
-    plt.xlabel("$20 \\times R_{500}$", fontsize=12)
-    plt.ylabel("$20 \\times R_{500}$", fontsize=12)
-
-    plt.show()
