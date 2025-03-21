@@ -1,28 +1,39 @@
 def draw_stacked_image(histogram, r500r):
 
-    plt.imshow(np.rot90(histogram), norm=matplotlib.colors.SymLogNorm(linthresh=0.00001, linscale=1), origin='upper')
+    plt.imshow(histogram, norm=matplotlib.colors.SymLogNorm(linthresh=0.00001, linscale=1), origin='upper')
     
     cb = plt.colorbar(fraction=0.046, pad=0.04)
     cb.set_label(f"Counts s$^{{-1}}$ arcmin$^{{-2}}$", size=13)
 
     plt.gca().add_patch(plt.Circle((half_length, half_length), r500r, 
-                               color='orangered', linestyle="--", lw=3, fill = False))
+                               color='orangered', linestyle="--", lw=2, fill = False))
     plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*1.6, 
-                               color='dodgerblue', linestyle="--", lw=3, fill = False))
+                               color='dodgerblue', linestyle="--", lw=2, fill = False))
     plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*2.7, 
-                               color='white', linestyle="--", lw=3, fill = False))
+                               color='green', linestyle="--", lw=2, fill = False))
     plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*8.1, 
-                               color='grey', linestyle="--", lw=3, fill = False))
+                               color='grey', linestyle="--", lw=2, fill = False))
 
     x_s = (plt.gca().get_xlim()[1]+plt.gca().get_xlim()[0])/2
-    y_s = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.95+plt.gca().get_ylim()[0]
-    y_S = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.90+plt.gca().get_ylim()[0]   
+    y_s = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.93+plt.gca().get_ylim()[0]
+    y_S = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.96+plt.gca().get_ylim()[0]   
     plt.plot((x_s+r500r/2, x_s-r500r/2), (y_s, y_s), color='white')
-    plt.text(x_s, y_S, f'10 arcmin $\\approx$ 1 Mpc', color='white', ha='center', va='center')
-
-    plt.xlabel("$20 \\times R_{500}$", fontsize=12)
-    plt.ylabel("$20 \\times R_{500}$", fontsize=12)
+    plt.text(x_s, y_S, f'10 arcmin $\\approx$ 1 Mpc', color='white', ha='center', va='center',
+             bbox=dict(facecolor='black', alpha=0.1))
     
+    skolko = 11
+    plt.xticks(np.linspace(0, 1, skolko)*2000, np.linspace(-10, 10, skolko).astype(int))
+    plt.yticks(np.linspace(0, 1, skolko)*2000, np.linspace(10, -10, skolko).astype(int))
+
+    plt.xlabel("$ (x-x_c) \\ / \\ R_{500}$", fontsize=13)
+    plt.ylabel("$ (y-y_c) \\ / \\ R_{500}$", fontsize=13)
+    
+    #plt.axvline(0, linestyle='--', color='orangered', label='$R_{500c}$', lw=1)
+    #plt.axvline(0, linestyle='--', color='dodgerblue', label='$R_{200c} = 1.6 \\cdot R_{500c}$', lw=1)
+    #plt.axvline(0, linestyle='--', color='green', label='$R_{200m} = 2.7 \\cdot R_{500c}$', lw=1)
+    #plt.axvline(0, linestyle='--', color='grey', label='$R_{ta} = 8.1 \\cdot R_{500c}$', lw=1)
+    #plt.legend(fontsize=11, frameon=True, loc=3)
+        
     return None
     
 def draw_stacked_profile(xxxx, yyyy, xxxx_error):
