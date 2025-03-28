@@ -74,9 +74,12 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         # hs4s - half size for search
             
         if (current_cluster_number != 13334) and (current_cluster_number != 18589):
-            hs4s = half_size/3/(halfsidelength/3)*1
+            hs4s = R
         else:
-            hs4s = half_size/1/(halfsidelength/3)
+            hs4s = 3*R
+        # for peak pixel    
+        if (current_cluster_number in [820, 1819, 6740, 10551, 11272, 13675, 17017, 18589, 18610]):
+            hs4s = R/4    
         
         # making 2D histogram with side length 2*half_size with center (RA_c, DEC_c) without drawing
                 
@@ -85,7 +88,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         search4centroid = search4centroid.drop("what", axis=1)
         nmhg, _, _ = np.histogram2d(search4centroid["RA"], search4centroid["DEC"], bins=int(2*hs4s*3600/ang_res))
         
-        nmhg = convolve(nmhg, Gaussian2DKernel(1))
+        nmhg = convolve(nmhg, Gaussian2DKernel(20))
                        
         # centroid position
                 
@@ -106,9 +109,9 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         
         # taking photons from circle centered at centroid
         
-   #     SLICE["check"]=np.where((SLICE["RA"]-c_x_1)**2+(SLICE["DEC"]-c_y_1)**2 <= R**2, True, False)
-   #     df = SLICE[SLICE['check'] == True]
-   #     dddfff = df.drop("check", axis=1)
+        #SLICE["check"]=np.where((SLICE["RA"]-c_x_1)**2+(SLICE["DEC"]-c_y_1)**2 <= R**2, True, False)
+        #df = SLICE[SLICE['check'] == True]
+        #dddfff = df.drop("check", axis=1)
     
         # searching for the coordinates of maximum value
         
@@ -188,6 +191,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     f2 = E(ztrue)**(-4)*(1+ztrue)**3
     factor = f1*f2
     nmhg = nmhg*factor
+    
+    #nmhg = convolve(nmhg, Gaussian2DKernel(1))
         
     # deleting haloes in the vicinity
         
@@ -196,8 +201,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         # taking haloes only from the slice to which this cluster belongs 
         
         VICINITY = np.where( ((clusters_all["x_pix"]*30-5 - c_x_1)**2 + 
-                              (clusters_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2))# & 
-                              #( np.abs(clusters_all["z_true"] - ztrue) < 0.027141 ) )  # 1 changed to 2
+                              (clusters_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2) & 
+                              ( np.abs(clusters_all["z_true"] - ztrue) < 0.027141 ) )  # 1 changed to 2
         #print(VICINITY)
         vclu = clusters_all.loc[VICINITY]  
         #display(vclu)
@@ -232,26 +237,26 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
             dec_pix = dec_pix.astype(int)
             radius_pix = radius_pix.astype(int)
             
-            circle_mask = create_circle_mask(ra_pix, dec_pix, 2*radius_pix, len(nmhg_mask))
-            if circle_mask[int(histlen/2), int(histlen/2)] == 0:
-                nmhg_mask = nmhg_mask + circle_mask
+            circle_mask = create_circle_mask(ra_pix, dec_pix, 1.5*radius_pix, len(nmhg_mask))
+            #if circle_mask[int(histlen/2), int(histlen/2)] == 0:
+            nmhg_mask = nmhg_mask + circle_mask
         
         # manual filtering
         
         if True:
             
             if (current_cluster_number == 17638):
-                pup = create_circle_mask(550, 950, 70, 2001)
+                pup = create_circle_mask(550, 950, 100, 2001)
                 vicenter.append(((2000-550)*ang_res/3600-half_size+cntr[0], 
                                  950*ang_res/3600-half_size+cntr[1], 
-                                 70*ang_res/3600))
+                                 100*ang_res/3600))
                 nmhg_mask = nmhg_mask + pup
             
             if (current_cluster_number == 18589):
-                pup = create_circle_mask(700, 1080, 50, 2001)
+                pup = create_circle_mask(700, 1080, 80, 2001)
                 vicenter.append(((2000-700)*ang_res/3600-half_size+cntr[0], 
                                  1080*ang_res/3600-half_size+cntr[1], 
-                                 50*ang_res/3600))
+                                 80*ang_res/3600))
                 nmhg_mask = nmhg_mask + pup
                 
             if (current_cluster_number == 10018):
@@ -289,7 +294,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                                  70*ang_res/3600))
                 nmhg_mask = nmhg_mask + pup              
 
-            if False:
+            if True:
             
                 if (current_cluster_number == 4613):
                     pup = create_circle_mask(380, 1350, 70, 2001)
@@ -337,7 +342,15 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                        
         #plt.gca().add_patch(plt.Circle((RA_c, DEC_c), R_vir, color='dodgerblue', linestyle="--", lw=3, fill = False))
         plt.gca().add_patch(plt.Circle(cntr, R, color='orangered', linestyle="--", lw=3, fill = False))
-        plt.gca().add_patch(plt.Circle(cntr, 10*R, color='orangered', linestyle=":", lw=1, fill = False))
+  #      plt.gca().add_patch(plt.Circle(cntr, 10*R, color='orangered', linestyle=":", lw=1, fill = False))
+        
+        if True:
+            plt.gca().add_patch(plt.Circle(cntr, R*1.6, 
+                               color='dodgerblue', linestyle="--", lw=2, fill = False))
+            plt.gca().add_patch(plt.Circle(cntr, R*2.7, 
+                               color='green', linestyle="--", lw=2, fill = False))
+            plt.gca().add_patch(plt.Circle(cntr, R*8.1, 
+                               color='grey', linestyle="--", lw=2, fill = False))
         
         x_s = (plt.gca().get_xlim()[1]+plt.gca().get_xlim()[0])/2
         y_s = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.95+plt.gca().get_ylim()[0]
@@ -350,14 +363,14 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         plt.ylim(cntr[1]-half_size, cntr[1]+half_size)
         plt.gca().set_aspect('equal', 'box')
         
-        if delete_superfluous:
+        #if delete_superfluous:
 
          #   for vv in vicenter_gal:
          #       plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=7)
                                                        
-            for vv in vicenter:
-                plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=3)
-                plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', ls="-", lw=1, fill=False))        
+            #for vv in vicenter:
+                #plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=3)
+                #plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', ls="-", lw=1, fill=False))        
         
         plt.xlabel("RA, deg", size=13)
         plt.ylabel("DEC, deg", size=13)
@@ -610,8 +623,8 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         #plt.show()
     
         if errors:
-            plt.errorbar(rr, meanbr, yerr=stdbr,
-                         fmt='.', capsize=0, capthick=1, elinewidth=1, color='gold', ecolor='gold')
+            plt.errorbar(rr, meanbr, yerr=stdbr, lw=0,
+                         fmt='', capsize=0, capthick=1, elinewidth=1, color='black', ecolor='black', alpha=0.95)
         
         # 4 different plot for 4 wedges:
         if False:                 
@@ -658,7 +671,7 @@ def draw_84_panels():
         
         plt.subplot(12, 7, np.where(np.array(clusters.index[:NNN]) == cl_num)[0][0]+1)
         
-        pho_hist = extract_photons_from_cluster(cl_num, draw=True, delete_superfluous=False)
+        pho_hist = extract_photons_from_cluster(cl_num, draw=True, delete_superfluous=True)
 
 
 def calc_l_T(T, T_left, T_right, Xplot=False):
