@@ -1,6 +1,6 @@
 def draw_stacked_image(histogram, r500r):
 
-    plt.imshow(histogram, norm=matplotlib.colors.SymLogNorm(linthresh=0.00001, linscale=1), origin='upper')
+    plt.imshow(histogram, norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1), origin='upper')
     
     cb = plt.colorbar(fraction=0.046, pad=0.04)
     cb.set_label(f"Counts s$^{{-1}}$ arcmin$^{{-2}}$", size=13)

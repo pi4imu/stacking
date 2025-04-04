@@ -88,7 +88,9 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         search4centroid = search4centroid.drop("what", axis=1)
         nmhg, _, _ = np.histogram2d(search4centroid["RA"], search4centroid["DEC"], bins=int(2*hs4s*3600/ang_res))
         
-        nmhg = convolve(nmhg, Gaussian2DKernel(20))
+        smooth = 40 / 3600 / R_500_rescaled * 100
+        #print("R_500 =", R_500_rescaled, "degrees;   kernel =", smooth, "pixels")
+        nmhg = convolve(nmhg, Gaussian2DKernel(smooth))
                        
         # centroid position
                 
@@ -201,8 +203,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         # taking haloes only from the slice to which this cluster belongs 
         
         VICINITY = np.where( ((clusters_all["x_pix"]*30-5 - c_x_1)**2 + 
-                              (clusters_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2) & 
-                              ( np.abs(clusters_all["z_true"] - ztrue) < 0.027141 ) )  # 1 changed to 2
+                              (clusters_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2) )#& 
+                            #  ( np.abs(clusters_all["z_true"] - ztrue) < 0.017141 ) )  # 1 changed to 2
         #print(VICINITY)
         vclu = clusters_all.loc[VICINITY]  
         #display(vclu)
@@ -237,13 +239,13 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
             dec_pix = dec_pix.astype(int)
             radius_pix = radius_pix.astype(int)
             
-            circle_mask = create_circle_mask(ra_pix, dec_pix, 1.5*radius_pix, len(nmhg_mask))
+            circle_mask = create_circle_mask(ra_pix, dec_pix, radius_pix, len(nmhg_mask))
             #if circle_mask[int(histlen/2), int(histlen/2)] == 0:
             nmhg_mask = nmhg_mask + circle_mask
         
         # manual filtering
         
-        if True:
+        if False:
             
             if (current_cluster_number == 17638):
                 pup = create_circle_mask(550, 950, 100, 2001)
@@ -315,19 +317,50 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         
         nmhg_unfiltered = nmhg
         nmhg = nmhg_unfiltered * (1-nmhg_mask)
+        
+        # keeping everything inside R500
+        
+        center_ones = create_circle_mask(1000, 1000, 100, histlen)
+        savecenter = nmhg_unfiltered*center_ones
+        
+        nmhg = nmhg*(1-center_ones) + savecenter
+        nmhg_mask = (1-nmhg_mask)*(1-center_ones) + center_ones
+        nmhg_mask[nmhg_mask > 1] = True
+        nmhg_mask = 1- nmhg_mask
     
     # postponed attempt to take galaxies into account        
             
-    #    galaxies_all = pd.read_csv("../data/eROSITA_30.0x30.0/Catalouges/galaxies.dat", sep='\s+', header=0)    
-    #    VICINITY_GAL = np.where( 
-    #    ((galaxies_all["x_pix"]*30-5 - c_x_1)**2 + (galaxies_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2) & 
-    #    ( np.abs(galaxies_all["z_true"] - ztrue) < 0.017141 ) )          
-    #    vclu_gal = galaxies_all.loc[VICINITY_GAL]          
-    #    for clcl_gal in VICINITY_GAL:     
-    #        vicinity_current_gal = galaxies_all.loc[clcl_gal]           
-    #        vicenter_gal = list(zip(vicinity_current_gal["x_pix"].values*30-5, 
-    #                                vicinity_current_gal["y_pix"].values*30-5))            
-    
+   #     galaxies_all = pd.read_csv("../data/eROSITA_30.0x30.0/Catalouges/galaxies.dat", sep='\\s+', header=0)    
+        VICINITY_GAL = np.where( 
+        ((galaxies_all["x_pix"]*30-5 - c_x_1)**2 + (galaxies_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2) & 
+        ( np.abs(galaxies_all["z_true"] - ztrue) < 0.017141 ) )          
+        #vclu_gal = galaxies_all.loc[VICINITY_GAL]          
+        
+        for clcl_gal in VICINITY_GAL:     
+            vicinity_current_gal = galaxies_all.loc[clcl_gal]           
+            vicenter_gal = list(zip(vicinity_current_gal["x_pix"].values*30-5, 
+                                    vicinity_current_gal["y_pix"].values*30-5))
+            
+        sled = vicinity_current_gal[((vicinity_current_gal["x_pix"]*30-5 + 2.65)**2 + (vicinity_current_gal["y_pix"]*30-5 - 14.6)**2 < 0.1**2)]
+        
+        display(sled)
+        
+        print(sled["isub"].values[sled["isub"].values<100000])
+        #plt.hist(sled["isub"].values[sled["isub"].values<100000])
+        #plt.show()
+        gall=[]
+        for opopo in vicenter_gal:    
+            #print(opopo)
+            #print(np.sqrt((opopo[0] + 2.6)**2 + (opopo[1] - 14.5)**2))
+            if ((opopo[0] + 2.65)**2 + (opopo[1] - 14.6)**2 < 0.1**2):
+                #print(opopo)
+                gall.append(opopo)
+                #display(vicinity_current_gal)            
+        #print(clusters_all[clusters_all["ihal"] in sled["isub"].values]) 
+        for s in sled["isub"].values:
+            print("yes" if s in clusters_all["ihal"].values else "")
+            #print(s, clusters_all[clusters_all["ihal"]==s])
+        
     if draw:
            
         trtr = plt.imshow(np.rot90(nmhg),
@@ -363,14 +396,18 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         plt.ylim(cntr[1]-half_size, cntr[1]+half_size)
         plt.gca().set_aspect('equal', 'box')
         
-        #if delete_superfluous:
+        if delete_superfluous:
 
-         #   for vv in vicenter_gal:
-         #       plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=7)
-                                                       
-            #for vv in vicenter:
-                #plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=3)
-                #plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', ls="-", lw=1, fill=False))        
+           # for vv in vicenter_gal:
+           #     plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=7)
+            
+            for opopo in gall:
+                plt.scatter(opopo[0], opopo[1], color='white', label = 'Subhaloes', s=3)
+            plt.gca().add_patch(plt.Circle((-2.65, 14.6), 0.1, color='white', ls="-", lw=1, fill=False))
+            
+            for vv in vicenter:
+                plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=3)
+                plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', ls="-", lw=1, fill=False))        
         
         plt.xlabel("RA, deg", size=13)
         plt.ylabel("DEC, deg", size=13)
@@ -511,9 +548,48 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         
         ring = koltso(setka_bins[i], setka_bins[i+1], c2, hist, r_pixels_max-1)       # returns both ring and mask for it
         
-        #plt.imshow(ring[0], norm=matplotlib.colors.SymLogNorm(linthresh=0.0001, linscale=1))
-        #plt.show()
+        # test place
         
+        if True and (i>len(setka)/2):
+            
+            plt.figure(figsize=(12, 6))
+            
+            plt.subplot(121)
+            plt.imshow(ring[0], norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
+            
+            plt.subplot(122)
+                        
+            rrrr = [(ring[0])[ii, jj] for ii in range(2001) for jj in range(2001) if (ring[1])[ii, jj] == 1]
+            
+            srr = np.mean(rrrr)
+            RMS = np.std(rrrr) # np.sqrt(sum([(el**2) for el in rrrr])/len(rrrr))
+            
+            rrrr = np.array(rrrr)
+            
+            filterrrred = rrrr[(rrrr <= (srr+3*RMS)) & (rrrr >= (srr-3*RMS))]
+            
+            plt.hist(filterrrred-np.mean(filterrrred), bins = 100, label='mean = '+str(np.mean(rrrr)), density=True)
+            
+            #plt.axvline(sr, color='red', ls='--')
+            #plt.axvline(np.mean(rrrr), color='green', ls='--')
+            #plt.axvline(np.max(rrrr), color='red', ls=':')
+                   
+            
+            #print(RMS)
+            #prevysh = rrrr[np.abs(rrrr-np.mean(rrrr))>5*RMS]
+            #print(prevysh.flatten())
+            #rrrr[np.abs(rrrr-np.mean(rrrr))>5*RMS]=0
+            #print((rrrr[np.abs(rrrr-np.mean(rrrr))>5*RMS]).flatten())
+            
+            #xxxccc = np.linspace(-5*RMS, +5*RMS, 10000)
+            #yyyccc = stats.norm.pdf(xxxccc, loc=0, scale=RMS/np.sqrt(2)) 
+            #plt.plot(xxxccc, yyyccc, color='black')
+            #plt.xlim(np.mean(rrrr)-3*RMS, np.mean(rrrr)+3*RMS)
+            
+            plt.legend()
+            
+            plt.show()
+                
         ####     hist*ring[1] = ring[0] ---- fact
         
         if isinstance(mmmask, str):
