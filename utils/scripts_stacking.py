@@ -90,7 +90,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         
         smooth = 40 / 3600 / R_500_rescaled * 100
         #print("R_500 =", R_500_rescaled, "degrees;   kernel =", smooth, "pixels")
-        nmhg = convolve(nmhg, Gaussian2DKernel(smooth))
+        nmhg = convolve_fft(nmhg, Gaussian2DKernel(smooth))
                        
         # centroid position
                 
@@ -203,8 +203,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         # taking haloes only from the slice to which this cluster belongs 
         
         VICINITY = np.where( ((clusters_all["x_pix"]*30-5 - c_x_1)**2 + 
-                              (clusters_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2) )#& 
-                            #  ( np.abs(clusters_all["z_true"] - ztrue) < 0.017141 ) )  # 1 changed to 2
+                              (clusters_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2) ) # & 
+                             # ( np.abs(clusters_all["z_true"] - ztrue) < 0.027141 ) )  # 1 changed to 2
         #print(VICINITY)
         vclu = clusters_all.loc[VICINITY]  
         #display(vclu)
@@ -239,7 +239,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
             dec_pix = dec_pix.astype(int)
             radius_pix = radius_pix.astype(int)
             
-            circle_mask = create_circle_mask(ra_pix, dec_pix, radius_pix, len(nmhg_mask))
+            circle_mask = create_circle_mask(ra_pix, dec_pix, 1.6*radius_pix, len(nmhg_mask))  # R200c
             #if circle_mask[int(histlen/2), int(histlen/2)] == 0:
             nmhg_mask = nmhg_mask + circle_mask
         
@@ -274,43 +274,43 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                                  1050*ang_res/3600-half_size+cntr[1], 
                                  70*ang_res/3600))
                 nmhg_mask = nmhg_mask + pup        
-                
-            if (current_cluster_number == 17421):
-                pup = create_circle_mask(450, 1700, 70, 2001)
-                vicenter.append(((2000-450)*ang_res/3600-half_size+cntr[0], 
-                                 1700*ang_res/3600-half_size+cntr[1], 
-                                 70*ang_res/3600))
-                nmhg_mask = nmhg_mask + pup
-                
-            if (current_cluster_number == 7996):
-                pup = create_circle_mask(720, 900, 90, 2001)
-                vicenter.append(((2000-720)*ang_res/3600-half_size+cntr[0], 
-                                 900*ang_res/3600-half_size+cntr[1], 
-                                 90*ang_res/3600))
-                nmhg_mask = nmhg_mask + pup
 
-            if (current_cluster_number == 17421):
-                pup = create_circle_mask(970, 1900, 70, 2001)
-                vicenter.append(((2000-970)*ang_res/3600-half_size+cntr[0], 
-                                 1900*ang_res/3600-half_size+cntr[1], 
-                                 70*ang_res/3600))
-                nmhg_mask = nmhg_mask + pup              
+# because filtering by haloes in all slices has deleted these clumps already
+                
+#            if (current_cluster_number == 17421):
+#                pup = create_circle_mask(450, 1700, 70, 2001)
+#                vicenter.append(((2000-450)*ang_res/3600-half_size+cntr[0], 
+#                                 1700*ang_res/3600-half_size+cntr[1], 
+#                                 70*ang_res/3600))
+#                nmhg_mask = nmhg_mask + pup
+                
+#            if (current_cluster_number == 7996):
+#                pup = create_circle_mask(720, 900, 90, 2001)
+#                vicenter.append(((2000-720)*ang_res/3600-half_size+cntr[0], 
+#                                 900*ang_res/3600-half_size+cntr[1], 
+#                                 90*ang_res/3600))
+#                nmhg_mask = nmhg_mask + pup
 
-            if True:
+#            if (current_cluster_number == 17421):
+#                pup = create_circle_mask(970, 1900, 70, 2001)
+#                vicenter.append(((2000-970)*ang_res/3600-half_size+cntr[0], 
+#                                 1900*ang_res/3600-half_size+cntr[1], 
+#                                 70*ang_res/3600))
+#                nmhg_mask = nmhg_mask + pup              
             
-                if (current_cluster_number == 4613):
-                    pup = create_circle_mask(380, 1350, 70, 2001)
-                    vicenter.append(((2000-380)*ang_res/3600-half_size+cntr[0], 
-                                     1350*ang_res/3600-half_size+cntr[1], 
-                                     70*ang_res/3600))
-                    nmhg_mask = nmhg_mask + pup              
+           # if (current_cluster_number == 4613):
+           #     pup = create_circle_mask(380, 1350, 70, 2001)
+           #     vicenter.append(((2000-380)*ang_res/3600-half_size+cntr[0], 
+           #                      1350*ang_res/3600-half_size+cntr[1], 
+           #                      70*ang_res/3600))
+           #     nmhg_mask = nmhg_mask + pup              
 
-                if (current_cluster_number == 171):
-                    pup = create_circle_mask(1650, 680, 70, 2001)
-                    vicenter.append(((2000-1650)*ang_res/3600-half_size+cntr[0], 
-                                     680*ang_res/3600-half_size+cntr[1], 
-                                     70*ang_res/3600))
-                    nmhg_mask = nmhg_mask + pup
+            if (current_cluster_number == 171):
+                 pup = create_circle_mask(1650, 680, 70, 2001)
+                 vicenter.append(((2000-1650)*ang_res/3600-half_size+cntr[0], 
+                                  680*ang_res/3600-half_size+cntr[1], 
+                                  70*ang_res/3600))
+                 nmhg_mask = nmhg_mask + pup
                                    
         nmhg_mask[nmhg_mask > 1] = True   
         nmhg_mask = np.rot90(nmhg_mask)         # some magic
@@ -341,25 +341,25 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
             vicenter_gal = list(zip(vicinity_current_gal["x_pix"].values*30-5, 
                                     vicinity_current_gal["y_pix"].values*30-5))
             
-        sled = vicinity_current_gal[((vicinity_current_gal["x_pix"]*30-5 + 2.65)**2 + (vicinity_current_gal["y_pix"]*30-5 - 14.6)**2 < 0.1**2)]
+        if False: 
+            sled = vicinity_current_gal[((vicinity_current_gal["x_pix"]*30-5 + 2.65)**2 + (vicinity_current_gal["y_pix"]*30-5 - 14.6)**2 < 0.1**2)]
+            display(sled)
         
-        display(sled)
-        
-        print(sled["isub"].values[sled["isub"].values<100000])
-        #plt.hist(sled["isub"].values[sled["isub"].values<100000])
-        #plt.show()
-        gall=[]
-        for opopo in vicenter_gal:    
-            #print(opopo)
-            #print(np.sqrt((opopo[0] + 2.6)**2 + (opopo[1] - 14.5)**2))
-            if ((opopo[0] + 2.65)**2 + (opopo[1] - 14.6)**2 < 0.1**2):
+            print(sled["isub"].values[sled["isub"].values<100000])
+            #plt.hist(sled["isub"].values[sled["isub"].values<100000])
+            #plt.show()
+            gall=[]
+            for opopo in vicenter_gal:    
                 #print(opopo)
-                gall.append(opopo)
-                #display(vicinity_current_gal)            
-        #print(clusters_all[clusters_all["ihal"] in sled["isub"].values]) 
-        for s in sled["isub"].values:
-            print("yes" if s in clusters_all["ihal"].values else "")
-            #print(s, clusters_all[clusters_all["ihal"]==s])
+                #print(np.sqrt((opopo[0] + 2.6)**2 + (opopo[1] - 14.5)**2))
+                if ((opopo[0] + 2.65)**2 + (opopo[1] - 14.6)**2 < 0.1**2):
+                    #print(opopo)
+                    gall.append(opopo)
+                    #display(vicinity_current_gal)            
+            #print(clusters_all[clusters_all["ihal"] in sled["isub"].values]) 
+            for s in sled["isub"].values:
+                print("yes:"+str(s) if s in clusters_all["ihal"].values else "no")
+                #print(s, clusters_all[clusters_all["ihal"]==s])
         
     if draw:
            
@@ -375,7 +375,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                        
         #plt.gca().add_patch(plt.Circle((RA_c, DEC_c), R_vir, color='dodgerblue', linestyle="--", lw=3, fill = False))
         plt.gca().add_patch(plt.Circle(cntr, R, color='orangered', linestyle="--", lw=3, fill = False))
-  #      plt.gca().add_patch(plt.Circle(cntr, 10*R, color='orangered', linestyle=":", lw=1, fill = False))
+        plt.gca().add_patch(plt.Circle(cntr, 10*R, color='orangered', linestyle=":", lw=1, fill = False))
         
         if True:
             plt.gca().add_patch(plt.Circle(cntr, R*1.6, 
@@ -396,18 +396,18 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         plt.ylim(cntr[1]-half_size, cntr[1]+half_size)
         plt.gca().set_aspect('equal', 'box')
         
-        if delete_superfluous:
+        #if delete_superfluous:
 
            # for vv in vicenter_gal:
            #     plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=7)
             
-            for opopo in gall:
-                plt.scatter(opopo[0], opopo[1], color='white', label = 'Subhaloes', s=3)
-            plt.gca().add_patch(plt.Circle((-2.65, 14.6), 0.1, color='white', ls="-", lw=1, fill=False))
+            #for opopo in gall:
+            #    plt.scatter(opopo[0], opopo[1], color='white', label = 'Subhaloes', s=3)
+            #plt.gca().add_patch(plt.Circle((-2.65, 14.6), 0.1, color='white', ls="-", lw=1, fill=False))
             
-            for vv in vicenter:
-                plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=3)
-                plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', ls="-", lw=1, fill=False))        
+        #    for vv in vicenter:
+        #        plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=3)
+        #        plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', ls="-", lw=1, fill=False))        
         
         plt.xlabel("RA, deg", size=13)
         plt.ylabel("DEC, deg", size=13)
@@ -550,30 +550,46 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         
         # test place
         
-        if True and (i>len(setka)/2):
+        if True and (i>17):
             
             plt.figure(figsize=(12, 6))
             
             plt.subplot(121)
             plt.imshow(ring[0], norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
-            
+            half_length = 1000
+            r500r = 100
+            plt.gca().add_patch(plt.Circle((half_length, half_length), r500r, 
+                                color='orangered', linestyle="--", lw=2, fill = False))
+            plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*1.6, 
+                                color='dodgerblue', linestyle="--", lw=2, fill = False))
+            plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*2.7, 
+                                color='green', linestyle="--", lw=2, fill = False))
+            plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*8.1, 
+                                color='grey', linestyle="--", lw=2, fill = False))
+                        
             plt.subplot(122)
                         
             rrrr = [(ring[0])[ii, jj] for ii in range(2001) for jj in range(2001) if (ring[1])[ii, jj] == 1]
+
+            rrrr = np.array(rrrr)
+            print(rrrr)
             
             srr = np.mean(rrrr)
             RMS = np.std(rrrr) # np.sqrt(sum([(el**2) for el in rrrr])/len(rrrr))
+            VAR = np.var(rrrr)
             
-            rrrr = np.array(rrrr)
+            #filterrrred = rrrr[(rrrr <= (srr+3*RMS)) & (rrrr >= (srr-3*RMS))]
             
-            filterrrred = rrrr[(rrrr <= (srr+3*RMS)) & (rrrr >= (srr-3*RMS))]
-            
-            plt.hist(filterrrred-np.mean(filterrrred), bins = 100, label='mean = '+str(np.mean(rrrr)), density=True)
+            plt.hist(rrrr, bins = 100, label=f'mean = {srr:.5f}\nvar = {VAR:5f}', density=False)
+            #         weights = np.ones_like(rrrr)/float(len(rrrr)))
             
             #plt.axvline(sr, color='red', ls='--')
             #plt.axvline(np.mean(rrrr), color='green', ls='--')
             #plt.axvline(np.max(rrrr), color='red', ls=':')
                    
+            #x1 = np.arange(0, max(rrrr)+1)
+            #st = stats.poisson.pmf(x1, int(srr))
+            #plt.plot(x1, st/max(st), 'o-', label=f'Poisson(λ={srr:.5f})')
             
             #print(RMS)
             #prevysh = rrrr[np.abs(rrrr-np.mean(rrrr))>5*RMS]
@@ -586,6 +602,8 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
             #plt.plot(xxxccc, yyyccc, color='black')
             #plt.xlim(np.mean(rrrr)-3*RMS, np.mean(rrrr)+3*RMS)
             
+            #plt.xscale("log")
+            plt.yscale("log")
             plt.legend()
             
             plt.show()
@@ -682,7 +700,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         plt.axvline(R500inmin*2.7, linestyle='--', color='green')#, label='$R_{200m} = 2.7 \\cdot R_{500c}$', lw=1)
         plt.axvline(R500inmin*8.1, linestyle='--', color='grey')#, label='$R_{ta} = 8.1 \\cdot R_{500c}$', lw=1)
         
-        plt.text(18, 1e-1, '$R_{500c}:R_{200c}:R_{200m}:R_{ta}=$\n$=1:1.6:2.7:8.1$', fontsize=11,
+        plt.text(19, 1e-1, '$R_{500c}:R_{200c}:R_{200m}:R_{ta}=$\n$=1:1.6:2.7:8.1$', fontsize=11,
                  bbox=dict(facecolor='white', alpha=0.99, edgecolor='grey'),
                  ha='center', va='center')        
         #plt.scatter(setka[:-1]/r500r*(10*998/1000), np.array(brightness)/10000, color='black', s=7)
@@ -691,7 +709,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         plt.errorbar(rr, #                       np.array(setka)/r500r*R500inmin, 
                      np.array(brightness), 
                      xerr=err/r500r*R500inmin, linewidth=0, marker='o', markersize=3, alpha=0.95,
-                     elinewidth=1, capsize=0, color='black', label='Stacked image')
+                     elinewidth=1, capsize=0, color='black', label='Stacked image (w/o 4)')
         #plt.ylim(1e-5, 5e-1)
         plt.legend(loc=3, fontsize=12)
         plt.xticks([0.1, 1, 10, 100], [0.1, 1, 10, 100])

@@ -28,6 +28,8 @@ def draw_stacked_image(histogram, r500r):
     plt.xlabel("$ (x-x_c) \\ / \\ R_{500}$", fontsize=13)
     plt.ylabel("$ (y-y_c) \\ / \\ R_{500}$", fontsize=13)
     
+    plt.gca().add_patch(plt.Circle((half_length, half_length), 10*r500r, color='orangered', linestyle=":", lw=1, fill = False))
+    
     #plt.axvline(0, linestyle='--', color='orangered', label='$R_{500c}$', lw=1)
     #plt.axvline(0, linestyle='--', color='dodgerblue', label='$R_{200c} = 1.6 \\cdot R_{500c}$', lw=1)
     #plt.axvline(0, linestyle='--', color='green', label='$R_{200m} = 2.7 \\cdot R_{500c}$', lw=1)
