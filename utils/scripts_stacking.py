@@ -550,11 +550,11 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         
         # test place
         
-        if True and (i>17):
+        if True and (i>14):
             
-            plt.figure(figsize=(12, 6))
+            plt.figure(figsize=(25, 6))
             
-            plt.subplot(121)
+            plt.subplot(131)
             plt.imshow(ring[0], norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
             half_length = 1000
             r500r = 100
@@ -566,47 +566,56 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
                                 color='green', linestyle="--", lw=2, fill = False))
             plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*8.1, 
                                 color='grey', linestyle="--", lw=2, fill = False))
-                        
-            plt.subplot(122)
-                        
-            rrrr = [(ring[0])[ii, jj] for ii in range(2001) for jj in range(2001) if (ring[1])[ii, jj] == 1]
-
-            rrrr = np.array(rrrr)
-            print(rrrr)
+            cb = plt.colorbar(fraction=0.046, pad=0.04)
+            cb.set_label(f"Counts s$^{{-1}}$ arcmin$^{{-2}}$", size=13)                       
+            skolko = 11
+            plt.xticks(np.linspace(0, 1, skolko)*2000, np.linspace(-10, 10, skolko).astype(int))
+            plt.yticks(np.linspace(0, 1, skolko)*2000, np.linspace(10, -10, skolko).astype(int))
             
+            plt.subplot(132)
+            rrrr = [(ring[0])[ii, jj] for ii in range(2001) for jj in range(2001) if (ring[1])[ii, jj] == 1]
+            rrrr = np.array(rrrr)
+            rrrr = rrrr[rrrr>0]
+            #print(rrrr)
             srr = np.mean(rrrr)
             RMS = np.std(rrrr) # np.sqrt(sum([(el**2) for el in rrrr])/len(rrrr))
             VAR = np.var(rrrr)
+            beans = np.logspace(np.log10(min(rrrr)), np.log10(max(rrrr)), 50)             
+            Vals, Bins, _ = plt.hist(rrrr, bins=beans) #, density=False, label=f'mean = {srr:.7f}\nrms = {RMS:7f}')
+            BinsC = [(a+b)/2 for a, b in zip(Bins[:-1], Bins[1:])]
+            BinsD = np.diff(Bins)
+            plt.xlabel("Counts s$^{{-1}}$ arcmin$^{{-2}}$", size=13)
+            #plt.scatter(BinsC, Vals, label=f'mean = {srr:.7f}\nvar = {VAR:5f}') # if np.histogram
+            plt.axvline(srr, color='red', ls='--', lw=2, label=f'mean = {srr:.7f}')
+            #plt.axvline(srr-RMS, color='green', ls='--', lw=2)
+            #plt.axvline(srr+RMS, color='green', ls='--', lw=2, label=f'rms = {RMS:7f}')
             
-            #filterrrred = rrrr[(rrrr <= (srr+3*RMS)) & (rrrr >= (srr-3*RMS))]
-            
-            plt.hist(rrrr, bins = 100, label=f'mean = {srr:.5f}\nvar = {VAR:5f}', density=False)
-            #         weights = np.ones_like(rrrr)/float(len(rrrr)))
-            
-            #plt.axvline(sr, color='red', ls='--')
-            #plt.axvline(np.mean(rrrr), color='green', ls='--')
-            #plt.axvline(np.max(rrrr), color='red', ls=':')
-                   
-            #x1 = np.arange(0, max(rrrr)+1)
-            #st = stats.poisson.pmf(x1, int(srr))
-            #plt.plot(x1, st/max(st), 'o-', label=f'Poisson(λ={srr:.5f})')
-            
-            #print(RMS)
-            #prevysh = rrrr[np.abs(rrrr-np.mean(rrrr))>5*RMS]
-            #print(prevysh.flatten())
-            #rrrr[np.abs(rrrr-np.mean(rrrr))>5*RMS]=0
-            #print((rrrr[np.abs(rrrr-np.mean(rrrr))>5*RMS]).flatten())
-            
-            #xxxccc = np.linspace(-5*RMS, +5*RMS, 10000)
-            #yyyccc = stats.norm.pdf(xxxccc, loc=0, scale=RMS/np.sqrt(2)) 
-            #plt.plot(xxxccc, yyyccc, color='black')
-            #plt.xlim(np.mean(rrrr)-3*RMS, np.mean(rrrr)+3*RMS)
-            
-            #plt.xscale("log")
+            plt.axvline(np.dot(BinsC,Vals)/sum(Vals), 
+                        color='red', ls='--', lw=5, alpha=0.5, label='sum(bins_centers*vals)/sum(vals)')
+            plt.xscale("log")
             plt.yscale("log")
             plt.legend()
             
+            plt.subplot(133)
+            print(np.sum(np.array(Vals[:])*np.array(BinsC[:])), sum(ring[0].flatten()))
+            print((hist*ring[1]).sum()/sum(ring[1].flatten()))
+            for v in range(0, len(Vals)):
+                #yy = np.dot(np.array(Vals[:-v]), np.array(BinsC[:-v])
+                filterrrred = rrrr[rrrr <= BinsC[-v]]
+                yy = np.mean(filterrrred)
+                plt.scatter(BinsC[-v], yy, color='k')
+            plt.axhline(srr, color='red', ls='--', lw=2)
+            plt.xlabel("Counts s$^{{-1}}$ arcmin$^{{-2}}$ (right end cutoff)", size=13)
+            plt.ylabel("Mean value of surface brightness", size=13)       
+            #x1 = np.arange(0, max(rrrr)+1)
+            #st = stats.poisson.pmf(x1, int(srr))
+            #plt.plot(x1, st/max(st), 'o-', label=f'Poisson(λ={srr:.5f})')
+            plt.xscale("log")
+            plt.yscale("log")
+            #plt.legend()
+            #plt.tight_layout()
             plt.show()
+            plt.figure(figsize=(6, 6))
                 
         ####     hist*ring[1] = ring[0] ---- fact
         
@@ -614,7 +623,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
             nbvc = np.array([0.])
             mmmask = np.ones_like(hist)
         else:
-            nbvc = ring[1]*(1-mmmask)            # reduce the area of mask for ring 
+            nbvc = ring[1]*(1-mmmask)            # reduce the area of mask for ring - only for individual profiles!
         
         cheese = ring[1] - nbvc    # actually ring[1]*mmask        
         
