@@ -550,7 +550,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         
         # test place
         
-        if True and (i>14):
+        if False and (i>14):
             
             plt.figure(figsize=(25, 6))
             
@@ -575,7 +575,8 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
             plt.subplot(132)
             rrrr = [(ring[0])[ii, jj] for ii in range(2001) for jj in range(2001) if (ring[1])[ii, jj] == 1]
             rrrr = np.array(rrrr)
-            rrrr = rrrr[rrrr>0]
+            #rrrr = rrrr[rrrr>0]
+            rrrr[rrrr==0] = 1e-7
             #print(rrrr)
             srr = np.mean(rrrr)
             RMS = np.std(rrrr) # np.sqrt(sum([(el**2) for el in rrrr])/len(rrrr))
