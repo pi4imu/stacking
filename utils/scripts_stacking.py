@@ -245,7 +245,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         
         # manual filtering
         
-        if False:
+        if True:
             
             if (current_cluster_number == 17638):
                 pup = create_circle_mask(550, 950, 100, 2001)
@@ -305,12 +305,12 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
            #                      70*ang_res/3600))
            #     nmhg_mask = nmhg_mask + pup              
 
-            if (current_cluster_number == 171):
-                 pup = create_circle_mask(1650, 680, 70, 2001)
-                 vicenter.append(((2000-1650)*ang_res/3600-half_size+cntr[0], 
-                                  680*ang_res/3600-half_size+cntr[1], 
-                                  70*ang_res/3600))
-                 nmhg_mask = nmhg_mask + pup
+           # if (current_cluster_number == 171):
+           #      pup = create_circle_mask(1650, 680, 70, 2001)
+           #      vicenter.append(((2000-1650)*ang_res/3600-half_size+cntr[0], 
+           #                       680*ang_res/3600-half_size+cntr[1], 
+           #                       70*ang_res/3600))
+           #      nmhg_mask = nmhg_mask + pup
                                    
         nmhg_mask[nmhg_mask > 1] = True   
         nmhg_mask = np.rot90(nmhg_mask)         # some magic
@@ -328,13 +328,13 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         nmhg_mask[nmhg_mask > 1] = True
         nmhg_mask = 1- nmhg_mask
     
-    # postponed attempt to take galaxies into account        
+    # attempt to take galaxies into account        
             
    #     galaxies_all = pd.read_csv("../data/eROSITA_30.0x30.0/Catalouges/galaxies.dat", sep='\\s+', header=0)    
         VICINITY_GAL = np.where( 
-        ((galaxies_all["x_pix"]*30-5 - c_x_1)**2 + (galaxies_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2) & 
-        ( np.abs(galaxies_all["z_true"] - ztrue) < 0.017141 ) )          
-        #vclu_gal = galaxies_all.loc[VICINITY_GAL]          
+        ((galaxies_all["x_pix"]*30-5 - c_x_1)**2 + (galaxies_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2)
+        & ( np.abs(galaxies_all["z_true"] - ztrue) < 0.017141 ) )          
+        #vclu_gal = galaxies_all.loc[VICINITY_GAL]           # no need
         
         for clcl_gal in VICINITY_GAL:     
             vicinity_current_gal = galaxies_all.loc[clcl_gal]           
@@ -396,10 +396,10 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         plt.ylim(cntr[1]-half_size, cntr[1]+half_size)
         plt.gca().set_aspect('equal', 'box')
         
-        #if delete_superfluous:
+        if delete_superfluous:
 
-           # for vv in vicenter_gal:
-           #     plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=7)
+            for vv in vicenter_gal:
+                plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=4)
             
             #for opopo in gall:
             #    plt.scatter(opopo[0], opopo[1], color='white', label = 'Subhaloes', s=3)
@@ -719,7 +719,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         plt.errorbar(rr, #                       np.array(setka)/r500r*R500inmin, 
                      np.array(brightness), 
                      xerr=err/r500r*R500inmin, linewidth=0, marker='o', markersize=3, alpha=0.95,
-                     elinewidth=1, capsize=0, color='black', label='Stacked image (w/o 4)')
+                     elinewidth=1, capsize=0, color='black', label='Stacked image')
         #plt.ylim(1e-5, 5e-1)
         plt.legend(loc=3, fontsize=12)
         plt.xticks([0.1, 1, 10, 100], [0.1, 1, 10, 100])
