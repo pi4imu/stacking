@@ -15,8 +15,8 @@ def draw_stacked_image(histogram, r500r):
                                color='grey', linestyle="--", lw=2, fill = False))
 
     x_s = (plt.gca().get_xlim()[1]+plt.gca().get_xlim()[0])/2
-    y_s = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.93+plt.gca().get_ylim()[0]
-    y_S = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.96+plt.gca().get_ylim()[0]   
+    y_s = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.92+plt.gca().get_ylim()[0]
+    y_S = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.95+plt.gca().get_ylim()[0]   
     plt.plot((x_s+r500r/2, x_s-r500r/2), (y_s, y_s), color='white')
     plt.text(x_s, y_S, f'10 arcmin $\\approx$ 1 Mpc', color='white', ha='center', va='center',
              bbox=dict(facecolor='black', alpha=0.1))

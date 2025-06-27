@@ -245,34 +245,45 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         
         # manual filtering
         
+<<<<<<< HEAD
         if True:
+=======
+        if True:      
+        
+            # something big and not very near
+>>>>>>> 492a522 (Profile is ready)
             
             if (current_cluster_number == 17638):
-                pup = create_circle_mask(550, 950, 100, 2001)
+                pup = create_circle_mask(550, 950, 200, 2001)
                 vicenter.append(((2000-550)*ang_res/3600-half_size+cntr[0], 
                                  950*ang_res/3600-half_size+cntr[1], 
-                                 100*ang_res/3600))
+                                 200/1.6*ang_res/3600))
                 nmhg_mask = nmhg_mask + pup
-            
+                pup = create_circle_mask(850, 1200, 150, 2001)
+                vicenter.append(((2000-850)*ang_res/3600-half_size+cntr[0], 
+                                 1200*ang_res/3600-half_size+cntr[1], 
+                                 150/1.6*ang_res/3600))
+                nmhg_mask = nmhg_mask + pup
+                            
             if (current_cluster_number == 18589):
                 pup = create_circle_mask(700, 1080, 80, 2001)
                 vicenter.append(((2000-700)*ang_res/3600-half_size+cntr[0], 
                                  1080*ang_res/3600-half_size+cntr[1], 
-                                 80*ang_res/3600))
+                                 80/1.6*ang_res/3600))
                 nmhg_mask = nmhg_mask + pup
                 
             if (current_cluster_number == 10018):
-                pup = create_circle_mask(1350, 1070, 70, 2001)
+                pup = create_circle_mask(1350, 1070, 100, 2001)
                 vicenter.append(((2000-1350)*ang_res/3600-half_size+cntr[0], 
                                  1070*ang_res/3600-half_size+cntr[1], 
-                                 70*ang_res/3600))
+                                 100/1.6*ang_res/3600))
                 nmhg_mask = nmhg_mask + pup
                 
             if (current_cluster_number == 13675):
-                pup = create_circle_mask(1500, 1050, 70, 2001)
+                pup = create_circle_mask(1500, 1050, 100, 2001)
                 vicenter.append(((2000-1500)*ang_res/3600-half_size+cntr[0], 
                                  1050*ang_res/3600-half_size+cntr[1], 
-                                 70*ang_res/3600))
+                                 100/1.6*ang_res/3600))
                 nmhg_mask = nmhg_mask + pup        
 
 # because filtering by haloes in all slices has deleted these clumps already
@@ -284,33 +295,136 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
 #                                 70*ang_res/3600))
 #                nmhg_mask = nmhg_mask + pup
                 
-#            if (current_cluster_number == 7996):
-#                pup = create_circle_mask(720, 900, 90, 2001)
-#                vicenter.append(((2000-720)*ang_res/3600-half_size+cntr[0], 
-#                                 900*ang_res/3600-half_size+cntr[1], 
-#                                 90*ang_res/3600))
-#                nmhg_mask = nmhg_mask + pup
+            if False:  # nearest
+                            
+                if (current_cluster_number == 7996):
+                    pup = create_circle_mask(1050, 1200, 100, 2001)
+                    vicenter.append(((2000-1050)*ang_res/3600-half_size+cntr[0], 
+                                     1200*ang_res/3600-half_size+cntr[1], 
+                                     100/1.6*ang_res/3600))
+                    nmhg_mask = nmhg_mask + pup
 
-#            if (current_cluster_number == 17421):
-#                pup = create_circle_mask(970, 1900, 70, 2001)
-#                vicenter.append(((2000-970)*ang_res/3600-half_size+cntr[0], 
-#                                 1900*ang_res/3600-half_size+cntr[1], 
+                if (current_cluster_number == 14857):
+                    pup = create_circle_mask(880, 1150, 100, 2001)
+                    vicenter.append(((2000-880)*ang_res/3600-half_size+cntr[0], 
+                                     1150*ang_res/3600-half_size+cntr[1], 
+                                     100/1.6*ang_res/3600))
+                    nmhg_mask = nmhg_mask + pup
+
+                if (current_cluster_number == 1819):
+                    pup = create_circle_mask(1200, 1050, 100, 2001)
+                    vicenter.append(((2000-1200)*ang_res/3600-half_size+cntr[0], 
+                                     1050*ang_res/3600-half_size+cntr[1], 
+                                     100/1.6*ang_res/3600))
+                    nmhg_mask = nmhg_mask + pup                   
+    
+                if (current_cluster_number == 11141):
+                    pup = create_circle_mask(850, 1200, 120, 2001)
+                    vicenter.append(((2000-850)*ang_res/3600-half_size+cntr[0], 
+                                     1200*ang_res/3600-half_size+cntr[1], 
+                                     120/1.6*ang_res/3600))
+                    nmhg_mask = nmhg_mask + pup  
+
+                if (current_cluster_number == 7308):
+                    pup = create_circle_mask(870, 870, 70, 2001)
+                    vicenter.append(((2000-870)*ang_res/3600-half_size+cntr[0], 
+                                     870*ang_res/3600-half_size+cntr[1], 
+                                     70/1.6*ang_res/3600))
+                    nmhg_mask = nmhg_mask + pup 
+
+                if (current_cluster_number == 9836):
+                     pup = create_circle_mask(1100, 1150, 100, 2001)
+                     vicenter.append(((2000-1100)*ang_res/3600-half_size+cntr[0], 
+                                      1150*ang_res/3600-half_size+cntr[1], 
+                                      100/1.6*ang_res/3600))
+                     nmhg_mask = nmhg_mask + pup                 
+
+                if (current_cluster_number == 9240):
+                     pup = create_circle_mask(1050, 1150, 100, 2001)
+                     vicenter.append(((2000-1050)*ang_res/3600-half_size+cntr[0], 
+                                      1150*ang_res/3600-half_size+cntr[1], 
+                                      100/1.6*ang_res/3600))
+                     nmhg_mask = nmhg_mask + pup 
+
+                if (current_cluster_number == 17086):
+                     pup = create_circle_mask(900, 1100, 70, 2001)
+                     vicenter.append(((2000-900)*ang_res/3600-half_size+cntr[0], 
+                                      1100*ang_res/3600-half_size+cntr[1], 
+                                      70/1.6*ang_res/3600))
+                     nmhg_mask = nmhg_mask + pup
+    
+                     pup = create_circle_mask(800, 1250, 70, 2001)
+                     vicenter.append(((2000-800)*ang_res/3600-half_size+cntr[0], 
+                                      1250*ang_res/3600-half_size+cntr[1], 
+                                      70/1.6*ang_res/3600))
+                     nmhg_mask = nmhg_mask + pup                 
+            
+#            if (current_cluster_number == 4613):
+#                pup = create_circle_mask(380, 1350, 70, 2001)
+#                vicenter.append(((2000-380)*ang_res/3600-half_size+cntr[0], 
+#                                 1350*ang_res/3600-half_size+cntr[1], 
 #                                 70*ang_res/3600))
 #                nmhg_mask = nmhg_mask + pup              
             
-           # if (current_cluster_number == 4613):
-           #     pup = create_circle_mask(380, 1350, 70, 2001)
-           #     vicenter.append(((2000-380)*ang_res/3600-half_size+cntr[0], 
-           #                      1350*ang_res/3600-half_size+cntr[1], 
-           #                      70*ang_res/3600))
-           #     nmhg_mask = nmhg_mask + pup              
+            # periphery
+            
+            if (current_cluster_number == 17421):
+                pup = create_circle_mask(80, 820, 70, 2001)
+                vicenter.append(((2000-80)*ang_res/3600-half_size+cntr[0], 
+                                 820*ang_res/3600-half_size+cntr[1], 
+                                 70*ang_res/3600))
+                nmhg_mask = nmhg_mask + pup  
 
+            if (current_cluster_number == 4613):
+                pup = create_circle_mask(920, 1940, 70, 2001)
+                vicenter.append(((2000-920)*ang_res/3600-half_size+cntr[0], 
+                                 1940*ang_res/3600-half_size+cntr[1], 
+                                 70/1.6*ang_res/3600))
+                nmhg_mask = nmhg_mask + pup  
+
+<<<<<<< HEAD
            # if (current_cluster_number == 171):
            #      pup = create_circle_mask(1650, 680, 70, 2001)
            #      vicenter.append(((2000-1650)*ang_res/3600-half_size+cntr[0], 
            #                       680*ang_res/3600-half_size+cntr[1], 
            #                       70*ang_res/3600))
            #      nmhg_mask = nmhg_mask + pup
+=======
+            if (current_cluster_number == 171):
+                 pup = create_circle_mask(1600, 1650, 70, 2001)
+                 vicenter.append(((2000-1600)*ang_res/3600-half_size+cntr[0], 
+                                  1650*ang_res/3600-half_size+cntr[1], 
+                                  70/1.6*ang_res/3600))
+                 nmhg_mask = nmhg_mask + pup
+
+            if (current_cluster_number == 3155):
+                 pup = create_circle_mask(1950, 1200, 70, 2001)
+                 vicenter.append(((2000-1950)*ang_res/3600-half_size+cntr[0], 
+                                  1200*ang_res/3600-half_size+cntr[1], 
+                                  70/1.6*ang_res/3600))
+                 nmhg_mask = nmhg_mask + pup     
+
+            if (current_cluster_number == 7191):
+                 pup = create_circle_mask(930, 1850, 100, 2001)
+                 vicenter.append(((2000-930)*ang_res/3600-half_size+cntr[0], 
+                                  1850*ang_res/3600-half_size+cntr[1], 
+                                  100/1.6*ang_res/3600))
+                 nmhg_mask = nmhg_mask + pup
+
+            if (current_cluster_number == 7553):
+                 pup = create_circle_mask(1200, 1950, 100, 2001)
+                 vicenter.append(((2000-1200)*ang_res/3600-half_size+cntr[0], 
+                                  1950*ang_res/3600-half_size+cntr[1], 
+                                  100/1.6*ang_res/3600))
+                 nmhg_mask = nmhg_mask + pup
+
+            if (current_cluster_number == 14726):
+                 pup = create_circle_mask(300, 420, 80, 2001)
+                 vicenter.append(((2000-300)*ang_res/3600-half_size+cntr[0], 
+                                  420*ang_res/3600-half_size+cntr[1], 
+                                  80/1.6*ang_res/3600))
+                 nmhg_mask = nmhg_mask + pup
+>>>>>>> 492a522 (Profile is ready)
                                    
         nmhg_mask[nmhg_mask > 1] = True   
         nmhg_mask = np.rot90(nmhg_mask)         # some magic
@@ -330,16 +444,25 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     
     # attempt to take galaxies into account        
             
+<<<<<<< HEAD
    #     galaxies_all = pd.read_csv("../data/eROSITA_30.0x30.0/Catalouges/galaxies.dat", sep='\\s+', header=0)    
         VICINITY_GAL = np.where( 
         ((galaxies_all["x_pix"]*30-5 - c_x_1)**2 + (galaxies_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2)
         & ( np.abs(galaxies_all["z_true"] - ztrue) < 0.017141 ) )          
         #vclu_gal = galaxies_all.loc[VICINITY_GAL]           # no need
+=======
+        if False:
+            #galaxies_all = pd.read_csv("../data/eROSITA_30.0x30.0/Catalouges/galaxies.dat", sep='\\s+', header=0)    
+            VICINITY_GAL = np.where( 
+                ((galaxies_all["x_pix"]*30-5 - c_x_1)**2 + (galaxies_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2)
+                & ( np.abs(galaxies_all["z_true"] - ztrue) < 0.017141 ) )          
+            #vclu_gal = galaxies_all.loc[VICINITY_GAL]           # no need
+>>>>>>> 492a522 (Profile is ready)
         
-        for clcl_gal in VICINITY_GAL:     
-            vicinity_current_gal = galaxies_all.loc[clcl_gal]           
-            vicenter_gal = list(zip(vicinity_current_gal["x_pix"].values*30-5, 
-                                    vicinity_current_gal["y_pix"].values*30-5))
+            for clcl_gal in VICINITY_GAL:     
+                vicinity_current_gal = galaxies_all.loc[clcl_gal]           
+                vicenter_gal = list(zip(vicinity_current_gal["x_pix"].values*30-5, 
+                                        vicinity_current_gal["y_pix"].values*30-5))
             
         if False: 
             sled = vicinity_current_gal[((vicinity_current_gal["x_pix"]*30-5 + 2.65)**2 + (vicinity_current_gal["y_pix"]*30-5 - 14.6)**2 < 0.1**2)]
@@ -398,16 +521,21 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         
         if delete_superfluous:
 
+<<<<<<< HEAD
             for vv in vicenter_gal:
                 plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=4)
+=======
+           # for vv in vicenter_gal:
+           #     plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=4)
+>>>>>>> 492a522 (Profile is ready)
             
             #for opopo in gall:
             #    plt.scatter(opopo[0], opopo[1], color='white', label = 'Subhaloes', s=3)
             #plt.gca().add_patch(plt.Circle((-2.65, 14.6), 0.1, color='white', ls="-", lw=1, fill=False))
             
-        #    for vv in vicenter:
-        #        plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=3)
-        #        plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', ls="-", lw=1, fill=False))        
+            for vv in vicenter:
+                plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=3)
+                plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', ls="-", lw=1, fill=False, alpha=0.5))        
         
         plt.xlabel("RA, deg", size=13)
         plt.ylabel("DEC, deg", size=13)
