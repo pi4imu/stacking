@@ -30,6 +30,10 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     
     D_A = FlatLambdaCDM(H0=100*0.704, Om0=0.272).angular_diameter_distance(ztrue)*1000 # kpc
     R_500_rescaled = R_500/D_A.value*180/np.pi # degrees
+    
+    # angularDiameterDistance( z, H0, omegaM, omegaLambda ) angularDiameterDistance( z, H0, omegaM, omegaLambda )dad angularDiameterDistance( z, H0, omegaM, omegaLambda ) 
+    
+    # parseFloat(col10) / (1+parseFloat(col7)) / 0.704 / angularDiameterDistance( parseFloat(col7), 70.4, 0.272, 0.728 ) / 1000 * 180 / 3.141592
             
     t = Table.read("../data/eROSITA_30.0x30.0/Phox/phlist_"+snap_id_str+".fits", hdu=2)
    
@@ -244,14 +248,10 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
             nmhg_mask = nmhg_mask + circle_mask
         
         # manual filtering
-        
-<<<<<<< HEAD
+
         if True:
-=======
-        if True:      
         
             # something big and not very near
->>>>>>> 492a522 (Profile is ready)
             
             if (current_cluster_number == 17638):
                 pup = create_circle_mask(550, 950, 200, 2001)
@@ -295,7 +295,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
 #                                 70*ang_res/3600))
 #                nmhg_mask = nmhg_mask + pup
                 
-            if False:  # nearest
+            if True:  # nearest
                             
                 if (current_cluster_number == 7996):
                     pup = create_circle_mask(1050, 1200, 100, 2001)
@@ -382,14 +382,13 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                                  70/1.6*ang_res/3600))
                 nmhg_mask = nmhg_mask + pup  
 
-<<<<<<< HEAD
            # if (current_cluster_number == 171):
            #      pup = create_circle_mask(1650, 680, 70, 2001)
            #      vicenter.append(((2000-1650)*ang_res/3600-half_size+cntr[0], 
            #                       680*ang_res/3600-half_size+cntr[1], 
            #                       70*ang_res/3600))
            #      nmhg_mask = nmhg_mask + pup
-=======
+           
             if (current_cluster_number == 171):
                  pup = create_circle_mask(1600, 1650, 70, 2001)
                  vicenter.append(((2000-1600)*ang_res/3600-half_size+cntr[0], 
@@ -424,7 +423,6 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                                   420*ang_res/3600-half_size+cntr[1], 
                                   80/1.6*ang_res/3600))
                  nmhg_mask = nmhg_mask + pup
->>>>>>> 492a522 (Profile is ready)
                                    
         nmhg_mask[nmhg_mask > 1] = True   
         nmhg_mask = np.rot90(nmhg_mask)         # some magic
@@ -444,20 +442,18 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     
     # attempt to take galaxies into account        
             
-<<<<<<< HEAD
    #     galaxies_all = pd.read_csv("../data/eROSITA_30.0x30.0/Catalouges/galaxies.dat", sep='\\s+', header=0)    
         VICINITY_GAL = np.where( 
         ((galaxies_all["x_pix"]*30-5 - c_x_1)**2 + (galaxies_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2)
         & ( np.abs(galaxies_all["z_true"] - ztrue) < 0.017141 ) )          
         #vclu_gal = galaxies_all.loc[VICINITY_GAL]           # no need
-=======
+        
         if False:
             #galaxies_all = pd.read_csv("../data/eROSITA_30.0x30.0/Catalouges/galaxies.dat", sep='\\s+', header=0)    
             VICINITY_GAL = np.where( 
                 ((galaxies_all["x_pix"]*30-5 - c_x_1)**2 + (galaxies_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2)
                 & ( np.abs(galaxies_all["z_true"] - ztrue) < 0.017141 ) )          
             #vclu_gal = galaxies_all.loc[VICINITY_GAL]           # no need
->>>>>>> 492a522 (Profile is ready)
         
             for clcl_gal in VICINITY_GAL:     
                 vicinity_current_gal = galaxies_all.loc[clcl_gal]           
@@ -521,13 +517,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         
         if delete_superfluous:
 
-<<<<<<< HEAD
-            for vv in vicenter_gal:
-                plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=4)
-=======
            # for vv in vicenter_gal:
            #     plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=4)
->>>>>>> 492a522 (Profile is ready)
             
             #for opopo in gall:
             #    plt.scatter(opopo[0], opopo[1], color='white', label = 'Subhaloes', s=3)
