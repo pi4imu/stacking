@@ -197,8 +197,6 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     f2 = E(ztrue)**(-4)*(1+ztrue)**3
     factor = f1*f2
     nmhg = nmhg*factor
-    
-    #nmhg = convolve(nmhg, Gaussian2DKernel(1))
         
     # deleting haloes in the vicinity
         
@@ -255,11 +253,15 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
             
             if (current_cluster_number == 17638):
                 pup = create_circle_mask(550, 950, 200, 2001)
+                pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
                 vicenter.append(((2000-550)*ang_res/3600-half_size+cntr[0], 
                                  950*ang_res/3600-half_size+cntr[1], 
                                  200/1.6*ang_res/3600))
                 nmhg_mask = nmhg_mask + pup
                 pup = create_circle_mask(850, 1200, 150, 2001)
+                pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
                 vicenter.append(((2000-850)*ang_res/3600-half_size+cntr[0], 
                                  1200*ang_res/3600-half_size+cntr[1], 
                                  150/1.6*ang_res/3600))
@@ -267,6 +269,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                             
             if (current_cluster_number == 18589):
                 pup = create_circle_mask(700, 1080, 80, 2001)
+                pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
                 vicenter.append(((2000-700)*ang_res/3600-half_size+cntr[0], 
                                  1080*ang_res/3600-half_size+cntr[1], 
                                  80/1.6*ang_res/3600))
@@ -274,6 +278,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                 
             if (current_cluster_number == 10018):
                 pup = create_circle_mask(1350, 1070, 100, 2001)
+                pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
                 vicenter.append(((2000-1350)*ang_res/3600-half_size+cntr[0], 
                                  1070*ang_res/3600-half_size+cntr[1], 
                                  100/1.6*ang_res/3600))
@@ -281,6 +287,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                 
             if (current_cluster_number == 13675):
                 pup = create_circle_mask(1500, 1050, 100, 2001)
+                pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
                 vicenter.append(((2000-1500)*ang_res/3600-half_size+cntr[0], 
                                  1050*ang_res/3600-half_size+cntr[1], 
                                  100/1.6*ang_res/3600))
@@ -295,10 +303,12 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
 #                                 70*ang_res/3600))
 #                nmhg_mask = nmhg_mask + pup
                 
-            if True:  # nearest
+            if False:  # nearest
                             
                 if (current_cluster_number == 7996):
                     pup = create_circle_mask(1050, 1200, 100, 2001)
+                    pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
                     vicenter.append(((2000-1050)*ang_res/3600-half_size+cntr[0], 
                                      1200*ang_res/3600-half_size+cntr[1], 
                                      100/1.6*ang_res/3600))
@@ -306,6 +316,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
 
                 if (current_cluster_number == 14857):
                     pup = create_circle_mask(880, 1150, 100, 2001)
+                    pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
                     vicenter.append(((2000-880)*ang_res/3600-half_size+cntr[0], 
                                      1150*ang_res/3600-half_size+cntr[1], 
                                      100/1.6*ang_res/3600))
@@ -313,6 +325,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
 
                 if (current_cluster_number == 1819):
                     pup = create_circle_mask(1200, 1050, 100, 2001)
+                    pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
                     vicenter.append(((2000-1200)*ang_res/3600-half_size+cntr[0], 
                                      1050*ang_res/3600-half_size+cntr[1], 
                                      100/1.6*ang_res/3600))
@@ -320,6 +334,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     
                 if (current_cluster_number == 11141):
                     pup = create_circle_mask(850, 1200, 120, 2001)
+                    pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
                     vicenter.append(((2000-850)*ang_res/3600-half_size+cntr[0], 
                                      1200*ang_res/3600-half_size+cntr[1], 
                                      120/1.6*ang_res/3600))
@@ -327,37 +343,47 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
 
                 if (current_cluster_number == 7308):
                     pup = create_circle_mask(870, 870, 70, 2001)
+                    pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
                     vicenter.append(((2000-870)*ang_res/3600-half_size+cntr[0], 
                                      870*ang_res/3600-half_size+cntr[1], 
                                      70/1.6*ang_res/3600))
                     nmhg_mask = nmhg_mask + pup 
 
                 if (current_cluster_number == 9836):
-                     pup = create_circle_mask(1100, 1150, 100, 2001)
-                     vicenter.append(((2000-1100)*ang_res/3600-half_size+cntr[0], 
+                    pup = create_circle_mask(1100, 1150, 100, 2001)
+                    pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
+                    vicenter.append(((2000-1100)*ang_res/3600-half_size+cntr[0], 
                                       1150*ang_res/3600-half_size+cntr[1], 
                                       100/1.6*ang_res/3600))
-                     nmhg_mask = nmhg_mask + pup                 
+                    nmhg_mask = nmhg_mask + pup                 
 
                 if (current_cluster_number == 9240):
-                     pup = create_circle_mask(1050, 1150, 100, 2001)
-                     vicenter.append(((2000-1050)*ang_res/3600-half_size+cntr[0], 
+                    pup = create_circle_mask(1050, 1150, 100, 2001)
+                    pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
+                    vicenter.append(((2000-1050)*ang_res/3600-half_size+cntr[0], 
                                       1150*ang_res/3600-half_size+cntr[1], 
                                       100/1.6*ang_res/3600))
-                     nmhg_mask = nmhg_mask + pup 
+                    nmhg_mask = nmhg_mask + pup 
 
                 if (current_cluster_number == 17086):
-                     pup = create_circle_mask(900, 1100, 70, 2001)
-                     vicenter.append(((2000-900)*ang_res/3600-half_size+cntr[0], 
+                    pup = create_circle_mask(900, 1100, 70, 2001)
+                    pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
+                    vicenter.append(((2000-900)*ang_res/3600-half_size+cntr[0], 
                                       1100*ang_res/3600-half_size+cntr[1], 
                                       70/1.6*ang_res/3600))
-                     nmhg_mask = nmhg_mask + pup
+                    nmhg_mask = nmhg_mask + pup
     
-                     pup = create_circle_mask(800, 1250, 70, 2001)
-                     vicenter.append(((2000-800)*ang_res/3600-half_size+cntr[0], 
+                    pup = create_circle_mask(800, 1250, 70, 2001)
+                    pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
+                    vicenter.append(((2000-800)*ang_res/3600-half_size+cntr[0], 
                                       1250*ang_res/3600-half_size+cntr[1], 
                                       70/1.6*ang_res/3600))
-                     nmhg_mask = nmhg_mask + pup                 
+                    nmhg_mask = nmhg_mask + pup                 
             
 #            if (current_cluster_number == 4613):
 #                pup = create_circle_mask(380, 1350, 70, 2001)
@@ -370,6 +396,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
             
             if (current_cluster_number == 17421):
                 pup = create_circle_mask(80, 820, 70, 2001)
+                pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
                 vicenter.append(((2000-80)*ang_res/3600-half_size+cntr[0], 
                                  820*ang_res/3600-half_size+cntr[1], 
                                  70*ang_res/3600))
@@ -377,6 +405,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
 
             if (current_cluster_number == 4613):
                 pup = create_circle_mask(920, 1940, 70, 2001)
+                pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
                 vicenter.append(((2000-920)*ang_res/3600-half_size+cntr[0], 
                                  1940*ang_res/3600-half_size+cntr[1], 
                                  70/1.6*ang_res/3600))
@@ -394,36 +424,64 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                  vicenter.append(((2000-1600)*ang_res/3600-half_size+cntr[0], 
                                   1650*ang_res/3600-half_size+cntr[1], 
                                   70/1.6*ang_res/3600))
+                 
+   #              plt.imshow(pup)
+   #              plt.show()
+                                                   
+                 pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
+                 
+          #       block_size = (old // new, old // new)
+                
+          #      downsampled_mask = block_reduce(pup_trimmed, block_size=block_size, func=np.any)
+          #       pup = downsampled_mask[:new, :new]
+                 
                  nmhg_mask = nmhg_mask + pup
+                 
+    #             plt.imshow(pup)
+    #             plt.show()
 
             if (current_cluster_number == 3155):
-                 pup = create_circle_mask(1950, 1200, 70, 2001)
-                 vicenter.append(((2000-1950)*ang_res/3600-half_size+cntr[0], 
+                pup = create_circle_mask(1950, 1200, 70, 2001)
+                pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
+                vicenter.append(((2000-1950)*ang_res/3600-half_size+cntr[0], 
                                   1200*ang_res/3600-half_size+cntr[1], 
                                   70/1.6*ang_res/3600))
-                 nmhg_mask = nmhg_mask + pup     
+                nmhg_mask = nmhg_mask + pup     
 
             if (current_cluster_number == 7191):
-                 pup = create_circle_mask(930, 1850, 100, 2001)
-                 vicenter.append(((2000-930)*ang_res/3600-half_size+cntr[0], 
+                pup = create_circle_mask(930, 1850, 100, 2001)
+                pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
+                vicenter.append(((2000-930)*ang_res/3600-half_size+cntr[0], 
                                   1850*ang_res/3600-half_size+cntr[1], 
                                   100/1.6*ang_res/3600))
-                 nmhg_mask = nmhg_mask + pup
+                nmhg_mask = nmhg_mask + pup
 
             if (current_cluster_number == 7553):
-                 pup = create_circle_mask(1200, 1950, 100, 2001)
-                 vicenter.append(((2000-1200)*ang_res/3600-half_size+cntr[0], 
+                pup = create_circle_mask(1200, 1950, 100, 2001)
+                pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
+                vicenter.append(((2000-1200)*ang_res/3600-half_size+cntr[0], 
                                   1950*ang_res/3600-half_size+cntr[1], 
                                   100/1.6*ang_res/3600))
-                 nmhg_mask = nmhg_mask + pup
+                nmhg_mask = nmhg_mask + pup
 
             if (current_cluster_number == 14726):
-                 pup = create_circle_mask(300, 420, 80, 2001)
-                 vicenter.append(((2000-300)*ang_res/3600-half_size+cntr[0], 
+                pup = create_circle_mask(300, 420, 80, 2001)
+                pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
+                vicenter.append(((2000-300)*ang_res/3600-half_size+cntr[0], 
                                   420*ang_res/3600-half_size+cntr[1], 
                                   80/1.6*ang_res/3600))
-                 nmhg_mask = nmhg_mask + pup
+                nmhg_mask = nmhg_mask + pup
                                    
+     #   kernel = 26 / 3600 / R_500_rescaled * 100
+     #   print("R_500 =", R_500_rescaled, "degrees;   kernel =", kernel, "pixels")
+        nmhg = convolve_fft(nmhg, Gaussian2DKernel(1))
+        # >3 na 201 - uzhe mnogo
+        
         nmhg_mask[nmhg_mask > 1] = True   
         nmhg_mask = np.rot90(nmhg_mask)         # some magic
         
@@ -432,14 +490,14 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         
         # keeping everything inside R500
         
-        center_ones = create_circle_mask(1000, 1000, 100, histlen)
+        center_ones = create_circle_mask(int(histlen/2), int(histlen/2), int(histlen/20), histlen)
         savecenter = nmhg_unfiltered*center_ones
         
         nmhg = nmhg*(1-center_ones) + savecenter
         nmhg_mask = (1-nmhg_mask)*(1-center_ones) + center_ones
         nmhg_mask[nmhg_mask > 1] = True
         nmhg_mask = 1- nmhg_mask
-    
+        
     # attempt to take galaxies into account        
             
    #     galaxies_all = pd.read_csv("../data/eROSITA_30.0x30.0/Catalouges/galaxies.dat", sep='\\s+', header=0)    
@@ -556,6 +614,13 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         #plt.legend(handles=handles, loc=3, fontsize=13)
         #plt.show()
 
+    if current_cluster_number % 2 != 0:
+    #    print("yes", current_cluster_number)
+        nmhg_unfiltered = np.rot90(nmhg_unfiltered, 2)
+        nmhg_mask = np.rot90(nmhg_mask, 2)
+    #else:
+    #    print("no", current_cluster_number)
+    
     if delete_superfluous:
         return np.fliplr(np.rot90(nmhg_unfiltered)), np.fliplr(np.rot90(1-nmhg_mask))
     else:
@@ -574,7 +639,7 @@ def create_circle_mask(x_center, y_center, radius, N):
 
     # Create a mask for the circle
     mask[dist_from_center <= radius] = True  # Set pixels within the circle to True
-
+    
     return mask
 
 
@@ -608,7 +673,7 @@ def koltso(r_in, r_out, mm, NMHG, d_pixels):
     return NMHG * mask, mask
     
     
-def wedge(n, l=2001):
+def wedge(n, l=201):
 
     w = np.zeros((l,l))
     
@@ -656,7 +721,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
     r_pixels_max = int(len(hist)/2)                  # depends on field size
     r500r = int(r_pixels_max/(field_length/2))       # field length should be in units of R500
     setka_bins = np.append([0, 2, 3, 4], 
-                           np.geomspace(5, r_pixels_max, 20)) # .astype(int)       # borders of bins
+                           np.geomspace(5, r_pixels_max, 50)) # .astype(int)       # borders of bins
     setka = [(a+b)/2 for a, b in zip(setka_bins[:-1], setka_bins[1:])]             # centers of bins
     c2 = [r_pixels_max, r_pixels_max]                # center of field
     err = np.diff(setka_bins)/2                      # just bins width
@@ -669,14 +734,22 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         
         # test place
         
-        if False and (i>14):
+        if True and (i>28):
             
-            plt.figure(figsize=(25, 6))
+            plt.figure(figsize=(22, 6))
             
+            aop = sum(ring[1].flatten())
+            print(aop)
+            pixsize = 1       # R500 = 10 pix = 10 arcmin => 1 arcmin = 1 pix
+            
+            ring0 = ring[0]
+            ring0 = ring0 * 10000 * aop
+                        
             plt.subplot(131)
-            plt.imshow(ring[0], norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
-            half_length = 1000
-            r500r = 100
+            plt.imshow(ring0, norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1))
+            plt.imshow(hist, norm=matplotlib.colors.SymLogNorm(linthresh=0.000001, linscale=1), alpha=0.5)
+            half_length = int(len(reduced_hist)/2)
+            r500r = int(len(reduced_hist)/20)
             plt.gca().add_patch(plt.Circle((half_length, half_length), r500r, 
                                 color='orangered', linestyle="--", lw=2, fill = False))
             plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*1.6, 
@@ -688,11 +761,13 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
             cb = plt.colorbar(fraction=0.046, pad=0.04)
             cb.set_label(f"Counts s$^{{-1}}$ arcmin$^{{-2}}$", size=13)                       
             skolko = 11
-            plt.xticks(np.linspace(0, 1, skolko)*2000, np.linspace(-10, 10, skolko).astype(int))
-            plt.yticks(np.linspace(0, 1, skolko)*2000, np.linspace(10, -10, skolko).astype(int))
+        #    plt.xticks(np.linspace(0, 1, skolko)*20, np.linspace(-10, 10, skolko).astype(int))
+        #    plt.yticks(np.linspace(0, 1, skolko)*20, np.linspace(10, -10, skolko).astype(int))
+            plt.axvline(int(len(reduced_hist)/2), color='white', ls='--', lw=2)
+            plt.axhline(int(len(reduced_hist)/2), color='white', ls='--', lw=2)            
             
             plt.subplot(132)
-            rrrr = [(ring[0])[ii, jj] for ii in range(2001) for jj in range(2001) if (ring[1])[ii, jj] == 1]
+            rrrr = [(ring0)[ii, jj] for ii in range(len(reduced_hist)) for jj in range(len(reduced_hist)) if (ring[1])[ii, jj] == 1]
             rrrr = np.array(rrrr)
             #rrrr = rrrr[rrrr>0]
             rrrr[rrrr==0] = 1e-7
@@ -700,25 +775,49 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
             srr = np.mean(rrrr)
             RMS = np.std(rrrr) # np.sqrt(sum([(el**2) for el in rrrr])/len(rrrr))
             VAR = np.var(rrrr)
-            beans = np.logspace(np.log10(min(rrrr)), np.log10(max(rrrr)), 50)             
-            Vals, Bins, _ = plt.hist(rrrr, bins=beans) #, density=False, label=f'mean = {srr:.7f}\nrms = {RMS:7f}')
+            beans = np.logspace(np.log10(min(rrrr)), np.log10(max(rrrr)), 20)             
+            Vals, Bins, _ = plt.hist(rrrr, bins=beans, alpha=0.7) 
+                            #, density=False, label=f'mean = {srr:.7f}\nrms = {RMS:7f}')
             BinsC = [(a+b)/2 for a, b in zip(Bins[:-1], Bins[1:])]
             BinsD = np.diff(Bins)
             plt.xlabel("Counts s$^{{-1}}$ arcmin$^{{-2}}$", size=13)
             #plt.scatter(BinsC, Vals, label=f'mean = {srr:.7f}\nvar = {VAR:5f}') # if np.histogram
-            plt.axvline(srr, color='red', ls='--', lw=2, label=f'mean = {srr:.7f}')
+            plt.axvline(srr, color='red', ls='--', lw=3, label=f'mean = {srr*10**5:.2f} $ \\times 10^{{-5}}$')
             #plt.axvline(srr-RMS, color='green', ls='--', lw=2)
             #plt.axvline(srr+RMS, color='green', ls='--', lw=2, label=f'rms = {RMS:7f}')
+     #       plt.axvline(np.dot(BinsC,Vals)/sum(Vals), 
+     #                   color='red', ls='--', lw=5, alpha=0.5, label='sum(bins_centers*vals)/sum(vals)')
+           # plt.xscale("log")
+            #plt.yscale("log")
             
-            plt.axvline(np.dot(BinsC,Vals)/sum(Vals), 
-                        color='red', ls='--', lw=5, alpha=0.5, label='sum(bins_centers*vals)/sum(vals)')
-            plt.xscale("log")
-            plt.yscale("log")
+            print(srr)
+            ps = stats.poisson.rvs(mu=srr, size=aop)
+            plt.hist(ps)
+                        
+            wedges = [0, 0, 0, 0]
+            for we in [1,2,3,4]:
+                cw1      = (ring[0])*wedge(we)
+                cw1_ring = (ring[1])*wedge(we)
+                ww = [cw1[ii, jj] for ii in range(len(reduced_hist)) for jj in range(len(reduced_hist)) if cw1_ring[ii, jj] == 1]
+                ww = np.array(ww)
+                ww[ww==0] = 1e-7
+                mw = np.mean(ww)
+                wedges[we-1] = mw            
+            
+        #    print(wedges)
+            std_we = np.std(wedges)
+        #    print(std_we)
+            
+            plt.axvline(srr+std_we, color='orange', ls='--', lw=3, label=f'std (4)  = {std_we*10**5:.2f} $\\times 10^{{-5}}$')           
+            plt.axvline(srr-std_we, color='orange', ls='--', lw=3, label=f'mean $\\pm$ std')
+            plt.axvline(srr+RMS, color='magenta', ls='--', lw=3, label=f'std all  = {RMS*10**5:.2f} $\\times 10^{{-5}}$')           
+            plt.axvline(srr-RMS, color='magenta', ls='--', lw=3, label=f'mean $\\pm$ std')
             plt.legend()
+   #         plt.xlim(1e-7, 1e-4)
             
             plt.subplot(133)
-            print(np.sum(np.array(Vals[:])*np.array(BinsC[:])), sum(ring[0].flatten()))
-            print((hist*ring[1]).sum()/sum(ring[1].flatten()))
+    #        print(np.sum(np.array(Vals[:])*np.array(BinsC[:])), sum(ring[0].flatten()))
+    #        print((hist*ring[1]).sum()/sum(ring[1].flatten()))
             for v in range(0, len(Vals)):
                 #yy = np.dot(np.array(Vals[:-v]), np.array(BinsC[:-v])
                 filterrrred = rrrr[rrrr <= BinsC[-v]]
@@ -734,6 +833,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
             plt.yscale("log")
             #plt.legend()
             #plt.tight_layout()
+   #         plt.savefig(str(i)+'.png', dpi=200)
             plt.show()
             plt.figure(figsize=(6, 6))
                 
@@ -829,9 +929,9 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         plt.axvline(R500inmin*2.7, linestyle='--', color='green')#, label='$R_{200m} = 2.7 \\cdot R_{500c}$', lw=1)
         plt.axvline(R500inmin*8.1, linestyle='--', color='grey')#, label='$R_{ta} = 8.1 \\cdot R_{500c}$', lw=1)
         
-        plt.text(19, 1e-1, '$R_{500c}:R_{200c}:R_{200m}:R_{ta}=$\n$=1:1.6:2.7:8.1$', fontsize=11,
-                 bbox=dict(facecolor='white', alpha=0.99, edgecolor='grey'),
-                 ha='center', va='center')        
+#        plt.text(19, 1e-1, '$R_{500c}:R_{200c}:R_{200m}:R_{ta}=$\n$=1:1.6:2.7:8.1$', fontsize=11,
+#                 bbox=dict(facecolor='white', alpha=0.99, edgecolor='grey'),
+#                 ha='center', va='center')        
         #plt.scatter(setka[:-1]/r500r*(10*998/1000), np.array(brightness)/10000, color='black', s=7)
         #print(np.array(setka)/r500r*R500inmin)
                 

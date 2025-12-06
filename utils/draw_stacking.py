@@ -22,8 +22,8 @@ def draw_stacked_image(histogram, r500r):
              bbox=dict(facecolor='black', alpha=0.1))
     
     skolko = 11
-    plt.xticks(np.linspace(0, 1, skolko)*2000, np.linspace(-10, 10, skolko).astype(int))
-    plt.yticks(np.linspace(0, 1, skolko)*2000, np.linspace(10, -10, skolko).astype(int))
+    plt.xticks(np.linspace(0, 1, skolko)*20*r500r, np.linspace(-10, 10, skolko).astype(int))
+    plt.yticks(np.linspace(0, 1, skolko)*20*r500r, np.linspace(10, -10, skolko).astype(int))
 
     plt.xlabel("$ (x-x_c) \\ / \\ R_{500}$", fontsize=13)
     plt.ylabel("$ (y-y_c) \\ / \\ R_{500}$", fontsize=13)
