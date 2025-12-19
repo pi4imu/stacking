@@ -572,8 +572,18 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         plt.xlim(cntr[0]-half_size, cntr[0]+half_size)
         plt.ylim(cntr[1]-half_size, cntr[1]+half_size)
         plt.gca().set_aspect('equal', 'box')
-        
-        if delete_superfluous:
+
+        if current_cluster_number in clusters_34.index:
+            plt.text(
+                     (plt.gca().get_xlim()[1]-plt.gca().get_xlim()[0])*0.05+plt.gca().get_xlim()[0],
+                     (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.05+plt.gca().get_ylim()[0],
+                     f'M', color='white', ha='center', va='center', fontweight='bold')
+
+#        if delete_superfluous:
+            
+#            for vv in vicenter:
+#                plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=3)
+#                plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', ls="-", lw=1, fill=False, alpha=0.5))        
 
            # for vv in vicenter_gal:
            #     plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=4)
@@ -581,11 +591,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
             #for opopo in gall:
             #    plt.scatter(opopo[0], opopo[1], color='white', label = 'Subhaloes', s=3)
             #plt.gca().add_patch(plt.Circle((-2.65, 14.6), 0.1, color='white', ls="-", lw=1, fill=False))
-            
-            for vv in vicenter:
-                plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=3)
-                plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', ls="-", lw=1, fill=False, alpha=0.5))        
-        
+                    
         plt.xlabel("RA, deg", size=13)
         plt.ylabel("DEC, deg", size=13)
         plt.xticks(size=13)
@@ -614,13 +620,6 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         #plt.legend(handles=handles, loc=3, fontsize=13)
         #plt.show()
 
-    if current_cluster_number % 2 != 0:
-    #    print("yes", current_cluster_number)
-        nmhg_unfiltered = np.rot90(nmhg_unfiltered, 2)
-        nmhg_mask = np.rot90(nmhg_mask, 2)
-    #else:
-    #    print("no", current_cluster_number)
-    
     if delete_superfluous:
         return np.fliplr(np.rot90(nmhg_unfiltered)), np.fliplr(np.rot90(1-nmhg_mask))
     else:
@@ -734,7 +733,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         
         # test place
         
-        if True and (i>28):
+        if True and (i>30) and (i<45):
             
             plt.figure(figsize=(22, 6))
             
@@ -775,14 +774,15 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
             srr = np.mean(rrrr)
             RMS = np.std(rrrr) # np.sqrt(sum([(el**2) for el in rrrr])/len(rrrr))
             VAR = np.var(rrrr)
-            beans = np.logspace(np.log10(min(rrrr)), np.log10(max(rrrr)), 20)             
+            beans = np.logspace(np.log10(min(rrrr)), np.log10(max(rrrr)), 20)
+            beans = np.linspace(0, 500, 20)           
             Vals, Bins, _ = plt.hist(rrrr, bins=beans, alpha=0.7) 
                             #, density=False, label=f'mean = {srr:.7f}\nrms = {RMS:7f}')
             BinsC = [(a+b)/2 for a, b in zip(Bins[:-1], Bins[1:])]
             BinsD = np.diff(Bins)
-            plt.xlabel("Counts s$^{{-1}}$ arcmin$^{{-2}}$", size=13)
+            plt.xlabel("Counts", size=13) #  s$^{{-1}}$ arcmin$^{{-2}}$
             #plt.scatter(BinsC, Vals, label=f'mean = {srr:.7f}\nvar = {VAR:5f}') # if np.histogram
-            plt.axvline(srr, color='red', ls='--', lw=3, label=f'mean = {srr*10**5:.2f} $ \\times 10^{{-5}}$')
+            plt.axvline(srr, color='red', ls='--', lw=3, label=f'mean = {srr:.2f}')# $\\times 10^{{-5}}$')
             #plt.axvline(srr-RMS, color='green', ls='--', lw=2)
             #plt.axvline(srr+RMS, color='green', ls='--', lw=2, label=f'rms = {RMS:7f}')
      #       plt.axvline(np.dot(BinsC,Vals)/sum(Vals), 
@@ -790,9 +790,29 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
            # plt.xscale("log")
             #plt.yscale("log")
             
-            print(srr)
-            ps = stats.poisson.rvs(mu=srr, size=aop)
-            plt.hist(ps)
+      #      print(srr)
+      #      ps1 = stats.poisson.rvs(mu=srr/20, size=aop)*12
+      #      plt.hist(ps1, bins=beans, weights=np.ones_like(ps1, dtype=float), alpha=0.5)
+      #      ps2 = stats.poisson.rvs(mu=srr/20, size=aop)*15
+      #      vvv, bbb, _ = plt.hist(ps2+ps1, bins=beans, weights=np.ones_like(ps2, dtype=float), alpha=0.4)
+      #      plt.plot(bbb[:-1], vvv)
+            
+            n_processes = 27  # 12+15=27 unit processes
+            ps_unit = np.sum([stats.poisson.rvs(mu=srr/20/27, size=aop) for _ in range(n_processes)], axis=0)
+            ps_unit = stats.poisson.rvs(mu=srr/20, loc=0, size=aop)
+            plt.hist(ps_unit*25, bins=np.linspace(0, 500, 20), density=False, weights=np.ones_like(ps_unit, dtype=float), alpha=0.5)
+            
+        #    r = rrrr.astype(int)
+        #    print(r)
+        #    print(r.mean())
+        #    k_min = int(r.min())
+        #    k_max = int(r.max())
+        #    bins = np.arange(k_min - 0.5, k_max + 1.5, 1)
+        #    plt.hist(r, bins=bins, density=True, alpha=0.4, label='data')
+        #    k = np.arange(k_min, k_max + 1)
+        #    pmf = stats.poisson(mu=r.mean()/2).pmf(k)
+        #    plt.plot(k, pmf*200, 'o-', label=fr'Poisson($\lambda$={r.mean():.2f})')
+            
                         
             wedges = [0, 0, 0, 0]
             for we in [1,2,3,4]:
@@ -805,12 +825,12 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
                 wedges[we-1] = mw            
             
         #    print(wedges)
-            std_we = np.std(wedges)
+            std_we = np.std(wedges)*10000*aop
         #    print(std_we)
             
-            plt.axvline(srr+std_we, color='orange', ls='--', lw=3, label=f'std (4)  = {std_we*10**5:.2f} $\\times 10^{{-5}}$')           
+            plt.axvline(srr+std_we, color='orange', ls='--', lw=3, label=f'std (4)  = {std_we:.2f}')# $\\times 10^{{-5}}$')           
             plt.axvline(srr-std_we, color='orange', ls='--', lw=3, label=f'mean $\\pm$ std')
-            plt.axvline(srr+RMS, color='magenta', ls='--', lw=3, label=f'std all  = {RMS*10**5:.2f} $\\times 10^{{-5}}$')           
+            plt.axvline(srr+RMS, color='magenta', ls='--', lw=3, label=f'std all  = {RMS:.2f}')# $\\times 10^{{-5}}$')           
             plt.axvline(srr-RMS, color='magenta', ls='--', lw=3, label=f'mean $\\pm$ std')
             plt.legend()
    #         plt.xlim(1e-7, 1e-4)
@@ -994,7 +1014,7 @@ def draw_84_panels():
         
         plt.subplot(12, 7, np.where(np.array(clusters.index[:NNN]) == cl_num)[0][0]+1)
         
-        pho_hist = extract_photons_from_cluster(cl_num, draw=True, delete_superfluous=True)
+        pho_hist = extract_photons_from_cluster(cl_num, draw=True, delete_superfluous=True, histlen=201)
 
 
 def calc_l_T(T, T_left, T_right, Xplot=False):
