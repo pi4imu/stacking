@@ -501,9 +501,9 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
     # attempt to take galaxies into account        
             
    #     galaxies_all = pd.read_csv("../data/eROSITA_30.0x30.0/Catalouges/galaxies.dat", sep='\\s+', header=0)    
-        VICINITY_GAL = np.where( 
-        ((galaxies_all["x_pix"]*30-5 - c_x_1)**2 + (galaxies_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2)
-        & ( np.abs(galaxies_all["z_true"] - ztrue) < 0.017141 ) )          
+#        VICINITY_GAL = np.where( 
+#        ((galaxies_all["x_pix"]*30-5 - c_x_1)**2 + (galaxies_all["y_pix"]*30-5 - c_y_1)**2 < 2*half_size**2)
+#        & ( np.abs(galaxies_all["z_true"] - ztrue) < 0.017141 ) )          
         #vclu_gal = galaxies_all.loc[VICINITY_GAL]           # no need
         
         if False:
@@ -579,11 +579,11 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                      (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.05+plt.gca().get_ylim()[0],
                      f'M', color='white', ha='center', va='center', fontweight='bold')
 
-#        if delete_superfluous:
+        if delete_superfluous:
             
-#            for vv in vicenter:
-#                plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=3)
-#                plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', ls="-", lw=1, fill=False, alpha=0.5))        
+            for vv in vicenter:
+                plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=3)
+                plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', ls="-", lw=1, fill=False, alpha=0.5))        
 
            # for vv in vicenter_gal:
            #     plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=4)
@@ -733,7 +733,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         
         # test place
         
-        if True and (i>30) and (i<45):
+        if False and (i>30) and (i<45):
             
             plt.figure(figsize=(22, 6))
             
@@ -998,7 +998,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
     #L_catalogue = clusters.loc[clusternumber]["Lx500"],'e+44'
     #print(L_spec)
    
-    return np.array(setka)/r500r*R500inmin, np.array(brightness), R_500_rescaled/10, L_p
+    return np.array(setka)/r500r*R500inmin, np.array(brightness), R_500_rescaled/10, L_p, stdbr
     
 
 def draw_84_panels():
