@@ -92,7 +92,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         search4centroid = search4centroid.drop("what", axis=1)
         nmhg, _, _ = np.histogram2d(search4centroid["RA"], search4centroid["DEC"], bins=int(2*hs4s*3600/ang_res))
         
-        smooth = 40 / 3600 / R_500_rescaled * 100
+        smooth = 40 / 3600 / R_500_rescaled * 100    # because r500 is 100 pixels
         #print("R_500 =", R_500_rescaled, "degrees;   kernel =", smooth, "pixels")
         nmhg = convolve_fft(nmhg, Gaussian2DKernel(smooth))
                        
@@ -477,9 +477,9 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                                   80/1.6*ang_res/3600))
                 nmhg_mask = nmhg_mask + pup
                                    
-     #   kernel = 26 / 3600 / R_500_rescaled * 100
-     #   print("R_500 =", R_500_rescaled, "degrees;   kernel =", kernel, "pixels")
-        nmhg = convolve_fft(nmhg, Gaussian2DKernel(1))
+        kernel = 26 / 3600 / R_500_rescaled * 100
+        print("R_500 =", R_500_rescaled, "degrees;   kernel =", kernel, "pixels")
+        nmhg = convolve_fft(nmhg, Gaussian2DKernel(kernel))
         # >3 na 201 - uzhe mnogo
         
         nmhg_mask[nmhg_mask > 1] = True   
@@ -672,7 +672,7 @@ def koltso(r_in, r_out, mm, NMHG, d_pixels):
     return NMHG * mask, mask
     
     
-def wedge(n, l=201):
+def wedge(n, l=2001):
 
     w = np.zeros((l,l))
     
