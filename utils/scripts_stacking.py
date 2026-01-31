@@ -302,7 +302,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
 #                                 1700*ang_res/3600-half_size+cntr[1], 
 #                                 70*ang_res/3600))
 #                nmhg_mask = nmhg_mask + pup
-                
+            
             if False:  # nearest
                             
                 if (current_cluster_number == 7996):
@@ -314,7 +314,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                                      100/1.6*ang_res/3600))
                     nmhg_mask = nmhg_mask + pup
 
-                if (current_cluster_number == 14857):
+                if (current_cluster_number == 14857):  # M
                     pup = create_circle_mask(880, 1150, 100, 2001)
                     pup = resize(pup.astype(float), (histlen, histlen), 
                               order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
@@ -323,7 +323,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                                      100/1.6*ang_res/3600))
                     nmhg_mask = nmhg_mask + pup
 
-                if (current_cluster_number == 1819):
+                if (current_cluster_number == 1819):  # M
                     pup = create_circle_mask(1200, 1050, 100, 2001)
                     pup = resize(pup.astype(float), (histlen, histlen), 
                               order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
@@ -332,7 +332,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                                      100/1.6*ang_res/3600))
                     nmhg_mask = nmhg_mask + pup                   
     
-                if (current_cluster_number == 11141):
+                if (current_cluster_number == 11141):  # M
                     pup = create_circle_mask(850, 1200, 120, 2001)
                     pup = resize(pup.astype(float), (histlen, histlen), 
                               order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
@@ -341,7 +341,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                                      120/1.6*ang_res/3600))
                     nmhg_mask = nmhg_mask + pup  
 
-                if (current_cluster_number == 7308):
+                if (current_cluster_number == 7308):  # M
                     pup = create_circle_mask(870, 870, 70, 2001)
                     pup = resize(pup.astype(float), (histlen, histlen), 
                               order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
@@ -478,10 +478,10 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                 nmhg_mask = nmhg_mask + pup
                                    
         kernel = 26 / 3600 / R_500_rescaled * 100
-        print("R_500 =", R_500_rescaled, "degrees;   kernel =", kernel, "pixels")
+   #     print("R_500 =", R_500_rescaled, "degrees;   kernel =", kernel, "pixels")
         nmhg = convolve_fft(nmhg, Gaussian2DKernel(kernel))
         # >3 na 201 - uzhe mnogo
-        
+
         nmhg_mask[nmhg_mask > 1] = True   
         nmhg_mask = np.rot90(nmhg_mask)         # some magic
         
@@ -497,7 +497,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         nmhg_mask = (1-nmhg_mask)*(1-center_ones) + center_ones
         nmhg_mask[nmhg_mask > 1] = True
         nmhg_mask = 1- nmhg_mask
-        
+    
     # attempt to take galaxies into account        
             
    #     galaxies_all = pd.read_csv("../data/eROSITA_30.0x30.0/Catalouges/galaxies.dat", sep='\\s+', header=0)    
@@ -579,11 +579,12 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                      (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.05+plt.gca().get_ylim()[0],
                      f'M', color='white', ha='center', va='center', fontweight='bold')
 
-        if delete_superfluous:
-            
-            for vv in vicenter:
-                plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=3)
-                plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], color='red', ls="-", lw=1, fill=False, alpha=0.5))        
+ #       if delete_superfluous:
+ #           
+ #           for vv in vicenter:
+ #               plt.scatter(vv[0], vv[1], color='red', label = 'Subhaloes', s=3)
+ #               plt.gca().add_patch(plt.Circle((vv[0], vv[1]), vv[2], 
+ #                                   color='red', ls="-", lw=1, fill=False, alpha=0.5))        
 
            # for vv in vicenter_gal:
            #     plt.scatter(vv[0], vv[1], color='blue', label = 'Subhaloes', s=4)
@@ -618,8 +619,8 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         l2 = Line2D([], [], label=str(r)+"$\\cdot R_{500}$", color='orangered', linestyle='--', linewidth=3)
         handles.extend([l2])
         #plt.legend(handles=handles, loc=3, fontsize=13)
-        #plt.show()
-
+        #plt.show()    
+    
     if delete_superfluous:
         return np.fliplr(np.rot90(nmhg_unfiltered)), np.fliplr(np.rot90(1-nmhg_mask))
     else:
@@ -959,15 +960,15 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
                      np.array(brightness), 
                      xerr=err/r500r*R500inmin, linewidth=0, marker='o', markersize=3, alpha=0.95,
                      elinewidth=1, capsize=0, color='black', label='Stacked image')
+                             
         #plt.ylim(1e-5, 5e-1)
         plt.legend(loc=3, fontsize=12)
         plt.xticks([0.1, 1, 10, 100], [0.1, 1, 10, 100])
         #plt.gca().set_aspect('auto', 'box')
         #plt.show()
-    
         if errors:
-            plt.errorbar(rr, meanbr, yerr=stdbr, lw=0,
-                         fmt='', capsize=0, capthick=1, elinewidth=1, color='black', ecolor='black', alpha=0.95)
+            plt.errorbar(rr, meanbr, yerr=stdbr, lw=0, markersize=2, marker='o', #fmt='',
+                         capsize=0, capthick=1, elinewidth=1, color='black', ecolor='black', alpha=0.95)
         
         # 4 different plot for 4 wedges:
         if False:                 
@@ -1014,7 +1015,7 @@ def draw_84_panels():
         
         plt.subplot(12, 7, np.where(np.array(clusters.index[:NNN]) == cl_num)[0][0]+1)
         
-        pho_hist = extract_photons_from_cluster(cl_num, draw=True, delete_superfluous=True, histlen=201)
+        pho_hist = extract_photons_from_cluster(cl_num, draw=True, delete_superfluous=True, histlen=2001)
 
 
 def calc_l_T(T, T_left, T_right, Xplot=False):
