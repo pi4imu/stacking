@@ -6,20 +6,21 @@ def draw_stacked_image(histogram, r500r):
     cb.set_label(f"Counts s$^{{-1}}$ arcmin$^{{-2}}$", size=13)
 
     plt.gca().add_patch(plt.Circle((half_length, half_length), r500r, 
-                               color='orangered', linestyle="--", lw=2, fill = False))
+                               color='red', linestyle="--", lw=2, fill = False))
     plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*1.6, 
-                               color='dodgerblue', linestyle="--", lw=2, fill = False))
+                               color='cyan', linestyle="--", lw=2, fill = False))
     plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*2.7, 
-                               color='green', linestyle="--", lw=2, fill = False))
+                               color='mediumspringgreen', linestyle="--", lw=2, fill = False))
     plt.gca().add_patch(plt.Circle((half_length, half_length), r500r*8.1, 
-                               color='grey', linestyle="--", lw=2, fill = False))
+                               color='gainsboro', linestyle="--", lw=2, fill = False))
 
     x_s = (plt.gca().get_xlim()[1]+plt.gca().get_xlim()[0])/2
     y_s = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.92+plt.gca().get_ylim()[0]
     y_S = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.95+plt.gca().get_ylim()[0]   
-    plt.plot((x_s+r500r/2, x_s-r500r/2), (y_s, y_s), color='white')
+    plt.plot((x_s+r500r/2, x_s-r500r/2), (y_s, y_s), color='white', lw=2)
     plt.text(x_s, y_S, f'10 arcmin $\\approx$ 1 Mpc', color='white', ha='center', va='center',
-             bbox=dict(facecolor='black', alpha=0.1))
+             #bbox=dict(facecolor='black', alpha=0.1), 
+             fontweight='extra bold')
     
     skolko = 11
     plt.xticks(np.linspace(0, 1, skolko)*20*r500r, np.linspace(-10, 10, skolko).astype(int))
@@ -28,7 +29,7 @@ def draw_stacked_image(histogram, r500r):
     plt.xlabel("$ (x-x_c) \\ / \\ R_{500}$", fontsize=13)
     plt.ylabel("$ (y-y_c) \\ / \\ R_{500}$", fontsize=13)
     
-    plt.gca().add_patch(plt.Circle((half_length, half_length), 10*r500r, color='orangered', linestyle=":", lw=1, fill = False))
+#    plt.gca().add_patch(plt.Circle((half_length, half_length), 10*r500r, color='orangered', linestyle=":", lw=1, fill = False))
     
     #plt.axvline(0, linestyle='--', color='orangered', label='$R_{500c}$', lw=1)
     #plt.axvline(0, linestyle='--', color='dodgerblue', label='$R_{200c} = 1.6 \\cdot R_{500c}$', lw=1)

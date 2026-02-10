@@ -303,7 +303,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
 #                                 70*ang_res/3600))
 #                nmhg_mask = nmhg_mask + pup
             
-            if False:  # nearest
+            if True:  # nearest
                             
                 if (current_cluster_number == 7996):
                     pup = create_circle_mask(1050, 1200, 100, 2001)
@@ -330,7 +330,14 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                     vicenter.append(((2000-1200)*ang_res/3600-half_size+cntr[0], 
                                      1050*ang_res/3600-half_size+cntr[1], 
                                      100/1.6*ang_res/3600))
-                    nmhg_mask = nmhg_mask + pup                   
+                    nmhg_mask = nmhg_mask + pup
+                    pup = create_circle_mask(850, 1050, 70, 2001)
+                    pup = resize(pup.astype(float), (histlen, histlen), 
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
+                    vicenter.append(((2000-850)*ang_res/3600-half_size+cntr[0], 
+                                     1050*ang_res/3600-half_size+cntr[1], 
+                                     70/1.6*ang_res/3600))
+                    nmhg_mask = nmhg_mask + pup             
     
                 if (current_cluster_number == 11141):  # M
                     pup = create_circle_mask(850, 1200, 120, 2001)
@@ -342,11 +349,11 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                     nmhg_mask = nmhg_mask + pup  
 
                 if (current_cluster_number == 7308):  # M
-                    pup = create_circle_mask(870, 870, 70, 2001)
+                    pup = create_circle_mask(860, 860, 70, 2001)
                     pup = resize(pup.astype(float), (histlen, histlen), 
                               order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
-                    vicenter.append(((2000-870)*ang_res/3600-half_size+cntr[0], 
-                                     870*ang_res/3600-half_size+cntr[1], 
+                    vicenter.append(((2000-860)*ang_res/3600-half_size+cntr[0], 
+                                     860*ang_res/3600-half_size+cntr[1], 
                                      70/1.6*ang_res/3600))
                     nmhg_mask = nmhg_mask + pup 
 
@@ -477,7 +484,10 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                                   80/1.6*ang_res/3600))
                 nmhg_mask = nmhg_mask + pup
                                    
-        kernel = 26 / 3600 / R_500_rescaled * 100
+        
+        rescale_da = D_A / (FlatLambdaCDM(H0=100*0.704, Om0=0.272).angular_diameter_distance(0.11)*1000) # kpc
+        print(rescale_da)
+        kernel = 26 * rescale_da / 3600 / R_500_rescaled * 100
    #     print("R_500 =", R_500_rescaled, "degrees;   kernel =", kernel, "pixels")
         nmhg = convolve_fft(nmhg, Gaussian2DKernel(kernel))
         # >3 na 201 - uzhe mnogo
@@ -567,7 +577,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         y_S = (plt.gca().get_ylim()[1]-plt.gca().get_ylim()[0])*0.90+plt.gca().get_ylim()[0]   
         plt.plot((x_s+5/60, x_s-5/60), (y_s, y_s), color='white')
         plt.text(x_s, y_S, f'10 arcmin $\\approx$ {10/60*D_A.value*np.pi/180:.0f} kpc', 
-                 color='white', ha='center', va='center')
+                 color='white', ha='center', va='center', fontweight='bold')
         
         plt.xlim(cntr[0]-half_size, cntr[0]+half_size)
         plt.ylim(cntr[1]-half_size, cntr[1]+half_size)
@@ -690,7 +700,6 @@ def wedge(n, l=2001):
      
     return w
 
-
     
 def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF_weights=False, errors=False):
     
@@ -721,7 +730,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
     r_pixels_max = int(len(hist)/2)                  # depends on field size
     r500r = int(r_pixels_max/(field_length/2))       # field length should be in units of R500
     setka_bins = np.append([0, 2, 3, 4], 
-                           np.geomspace(5, r_pixels_max, 50)) # .astype(int)       # borders of bins
+                           np.geomspace(5, r_pixels_max, 20)) # .astype(int)       # borders of bins
     setka = [(a+b)/2 for a, b in zip(setka_bins[:-1], setka_bins[1:])]             # centers of bins
     c2 = [r_pixels_max, r_pixels_max]                # center of field
     err = np.diff(setka_bins)/2                      # just bins width
@@ -895,8 +904,9 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         #ring[0].sum()/(sum(ring[1].flatten())-sum(nbvc.flatten()))      # (pix_in_k2-pix_in_k1)
         
         brightness.append(br)
-             
-        if errors:
+      
+        if True:
+        
             cw = cheese*wedge(1)
             brw1 = (hist*cw).sum()/sum(cw.flatten())
             cw = cheese*wedge(2)
