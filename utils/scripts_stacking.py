@@ -430,21 +430,15 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                  pup = create_circle_mask(1600, 1650, 70, 2001)
                  vicenter.append(((2000-1600)*ang_res/3600-half_size+cntr[0], 
                                   1650*ang_res/3600-half_size+cntr[1], 
-                                  70/1.6*ang_res/3600))
-                 
+                                  70/1.6*ang_res/3600))                
    #              plt.imshow(pup)
-   #              plt.show()
-                                                   
+   #              plt.show()                                                   
                  pup = resize(pup.astype(float), (histlen, histlen), 
-                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
-                 
-          #       block_size = (old // new, old // new)
-                
+                              order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5                
+          #       block_size = (old // new, old // new)                
           #      downsampled_mask = block_reduce(pup_trimmed, block_size=block_size, func=np.any)
-          #       pup = downsampled_mask[:new, :new]
-                 
-                 nmhg_mask = nmhg_mask + pup
-                 
+          #       pup = downsampled_mask[:new, :new]                
+                 nmhg_mask = nmhg_mask + pup                
     #             plt.imshow(pup)
     #             plt.show()
 
@@ -487,6 +481,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         
         rescale_da = D_A / (FlatLambdaCDM(H0=100*0.704, Om0=0.272).angular_diameter_distance(0.11)*1000) # kpc
         print(rescale_da)
+        #rescale_da = 1
         kernel = 26 * rescale_da / 3600 / R_500_rescaled * 100
    #     print("R_500 =", R_500_rescaled, "degrees;   kernel =", kernel, "pixels")
         nmhg = convolve_fft(nmhg, Gaussian2DKernel(kernel))
@@ -730,7 +725,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
     r_pixels_max = int(len(hist)/2)                  # depends on field size
     r500r = int(r_pixels_max/(field_length/2))       # field length should be in units of R500
     setka_bins = np.append([0, 2, 3, 4], 
-                           np.geomspace(5, r_pixels_max, 20)) # .astype(int)       # borders of bins
+                           np.geomspace(5, r_pixels_max, 50)) # .astype(int)       # borders of bins
     setka = [(a+b)/2 for a, b in zip(setka_bins[:-1], setka_bins[1:])]             # centers of bins
     c2 = [r_pixels_max, r_pixels_max]                # center of field
     err = np.diff(setka_bins)/2                      # just bins width
@@ -981,7 +976,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
                          capsize=0, capthick=1, elinewidth=1, color='black', ecolor='black', alpha=0.95)
         
         # 4 different plot for 4 wedges:
-        if False:                 
+        if True:                 
             plt.plot(rr, np.array(br1))
             plt.plot(rr, np.array(br2))
             plt.plot(rr, np.array(br3))
@@ -1008,8 +1003,9 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
     #print(L_p)
     #L_catalogue = clusters.loc[clusternumber]["Lx500"],'e+44'
     #print(L_spec)
+    
    
-    return np.array(setka)/r500r*R500inmin, np.array(brightness), R_500_rescaled/10, L_p, stdbr
+    return np.array(setka)/r500r*R500inmin, np.array(brightness), R_500_rescaled/10, L_p, np.diff(setka_bins)/2/r500r*R500inmin, stdbr, [br1, br2, br3, br4]
     
 
 def draw_84_panels():
