@@ -251,7 +251,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         
             # something big and not very near
             
-            if (current_cluster_number == 17638):
+            if (current_cluster_number == 17638):  # M
                 pup = create_circle_mask(550, 950, 200, 2001)
                 pup = resize(pup.astype(float), (histlen, histlen), 
                               order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
@@ -401,7 +401,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
             
             # periphery
             
-            if (current_cluster_number == 17421):
+            if (current_cluster_number == 17421):  # M
                 pup = create_circle_mask(80, 820, 70, 2001)
                 pup = resize(pup.astype(float), (histlen, histlen), 
                               order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
@@ -410,7 +410,7 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                                  70*ang_res/3600))
                 nmhg_mask = nmhg_mask + pup  
 
-            if (current_cluster_number == 4613):
+            if (current_cluster_number == 4613):  # M
                 pup = create_circle_mask(920, 1940, 70, 2001)
                 pup = resize(pup.astype(float), (histlen, histlen), 
                               order=3, mode='reflect', anti_aliasing=False, preserve_range=True) > 0.5
@@ -479,12 +479,12 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
                 nmhg_mask = nmhg_mask + pup
                                    
         
-        rescale_da = D_A / (FlatLambdaCDM(H0=100*0.704, Om0=0.272).angular_diameter_distance(0.11)*1000) # kpc
-        print(rescale_da)
+#        rescale_da = D_A / (FlatLambdaCDM(H0=100*0.704, Om0=0.272).angular_diameter_distance(0.11)*1000) # kpc
+#        print(rescale_da)
         #rescale_da = 1
-        kernel = 26 * rescale_da / 3600 / R_500_rescaled * 100
-   #     print("R_500 =", R_500_rescaled, "degrees;   kernel =", kernel, "pixels")
-        nmhg = convolve_fft(nmhg, Gaussian2DKernel(kernel))
+#        kernel = 26 / (2*np.sqrt(2*np.log(2))) * rescale_da / 3600 / R_500_rescaled * 100
+    #    print("R_500 =", R_500_rescaled, "degrees;   kernel =", kernel, "pixels")
+#        nmhg = convolve_fft(nmhg, Gaussian2DKernel(kernel))
         # >3 na 201 - uzhe mnogo
 
         nmhg_mask[nmhg_mask > 1] = True   
@@ -738,7 +738,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         
         # test place
         
-        if False and (i>30) and (i<45):
+        if False and (i>12) and (i<45):
             
             plt.figure(figsize=(22, 6))
             
@@ -872,7 +872,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
         
         cheese = ring[1] - nbvc    # actually ring[1]*mmask        
         
-        if False:
+        if False and (i>15):
             print('Total brightness inside the ring:', ring[0].sum())
             print('Total area of ring in pixels:', sum(ring[1].flatten()))
             print('Area to exclude:', sum(nbvc.flatten()))
@@ -976,7 +976,7 @@ def brightness_profile(clusternumber, hist, mmmask, field_length, draw=True, ARF
                          capsize=0, capthick=1, elinewidth=1, color='black', ecolor='black', alpha=0.95)
         
         # 4 different plot for 4 wedges:
-        if True:                 
+        if False:                 
             plt.plot(rr, np.array(br1))
             plt.plot(rr, np.array(br2))
             plt.plot(rr, np.array(br3))

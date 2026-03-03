@@ -39,7 +39,7 @@ def draw_stacked_image(histogram, r500r):
         
     return None
     
-def draw_stacked_profile(xxxx, yyyy, xxxx_error, yyyy_error, wed4):
+def draw_stacked_profile(xxxx, yyyy, xxxx_error, yyyy_error, wed4, background):
 
         plt.errorbar(np.array(xxxx),
                      np.array(yyyy), 
@@ -48,7 +48,7 @@ def draw_stacked_profile(xxxx, yyyy, xxxx_error, yyyy_error, wed4):
                      linewidth=0, marker='o', markersize=3, alpha=0.95,
                      elinewidth=1, capsize=0, capthick=1,
                      color='black', ecolor='black',
-                     label='Stacked image')
+                     label='Stacked image', zorder=1)
 
         plt.xlabel("Radius, arcmin", fontsize=12)  # "Radius in units of $R_{500}$")
         plt.ylabel("Counts s$^{{-1}}$ arcmin$^{{-2}}$", fontsize=12) # "Brightness in relative units")
@@ -79,23 +79,29 @@ def draw_stacked_profile(xxxx, yyyy, xxxx_error, yyyy_error, wed4):
             br_sort = np.take_along_axis(br_all, idx, axis=0)
            # print(br_sort)
   
-            br1, br2, br3, br4 = br_sort          
+            br1, br2, br3, br4 = br_sort # br_all         
           
-            phon = 6e-6
+            print(background)
+            phon = 0# background / 1.
                                
-          #  plt.plot(np.array(xxxx), np.array(br1)-phon)
-          #  plt.plot(np.array(xxxx), np.array(br2)-phon)
-          #  plt.plot(np.array(xxxx), np.array(br3)-phon)
-          #  plt.plot(np.array(xxxx), np.array(br4)-phon)
+            if False:
+                plt.plot(np.array(xxxx), np.array(br1)-phon)
+                plt.plot(np.array(xxxx), np.array(br2)-phon)
+                plt.plot(np.array(xxxx), np.array(br3)-phon)
+                plt.plot(np.array(xxxx), np.array(br4)-phon)
+                
+            plt.plot(np.array(xxxx), (np.array(br2)+np.array(br3))/2-phon, color='red')
             
-            plt.fill_between(np.array(xxxx),
-                             np.array(br4)-phon, np.array(br1)-phon,
-                             color='magenta', 
-                             zorder=10, alpha=0.1)
-            plt.fill_between(np.array(xxxx),
-                             np.array(br3)-phon, np.array(br2)-phon,
-                             color='magenta', 
-                             zorder=10, alpha=0.3)           
+            if True:
+            
+                plt.fill_between(np.array(xxxx),
+                                 np.array(br4)-phon, np.array(br1)-phon,
+                                 color='magenta', 
+                                 zorder=10, alpha=0.2)
+                plt.fill_between(np.array(xxxx),
+                                 np.array(br3)-phon, np.array(br2)-phon,
+                                 color='magenta', 
+                                 zorder=10, alpha=0.25)           
         
         resc1 = lambda x: x/R500inmin
         resc2 = lambda x: x*R500inmin
