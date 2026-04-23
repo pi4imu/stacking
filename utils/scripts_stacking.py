@@ -481,10 +481,10 @@ def extract_photons_from_cluster(current_cluster_number, r=1.0, centroid=True, d
         
 #        rescale_da = D_A / (FlatLambdaCDM(H0=100*0.704, Om0=0.272).angular_diameter_distance(0.11)*1000) # kpc
 #        print(rescale_da)
-        #rescale_da = 1
-#        kernel = 26 / (2*np.sqrt(2*np.log(2))) * rescale_da / 3600 / R_500_rescaled * 100
+        rescale_da = 1
+        kernel = 26 / (2*np.sqrt(2*np.log(2))) * rescale_da / 3600 / R_500_rescaled * 100
     #    print("R_500 =", R_500_rescaled, "degrees;   kernel =", kernel, "pixels")
-#        nmhg = convolve_fft(nmhg, Gaussian2DKernel(kernel))
+        nmhg = convolve_fft(nmhg, Gaussian2DKernel(kernel))
         # >3 na 201 - uzhe mnogo
 
         nmhg_mask[nmhg_mask > 1] = True   
