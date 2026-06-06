@@ -39,16 +39,20 @@ def draw_stacked_image(histogram, r500r):
         
     return None
     
-def draw_stacked_profile(xxxx, yyyy, xxxx_error, yyyy_error, wed4, background):
+def draw_stacked_profile(xxxx, yyyy, xxxx_error, yyyy_error, wed4, background):#, clr, lbl):
+
+        clr='k'
 
         plt.errorbar(np.array(xxxx),
                      np.array(yyyy), 
                      xerr=xxxx_error,
                      yerr=yyyy_error,
                      linewidth=0, marker='o', markersize=3, alpha=0.95,
-                     elinewidth=1, capsize=0, capthick=1,
-                     color='black', ecolor='black',
-                     label='Stacked image', zorder=1)
+                     elinewidth=1, capsize=0, capthick=0,
+                     color=clr, ecolor=clr,
+                    # label='Stacked image',
+                   #  label=lbl, 
+                     zorder=1)
 
         plt.xlabel("Radius, arcmin", fontsize=12)  # "Radius in units of $R_{500}$")
         plt.ylabel("Counts s$^{{-1}}$ arcmin$^{{-2}}$", fontsize=12) # "Brightness in relative units")
