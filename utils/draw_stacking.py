@@ -50,7 +50,7 @@ def draw_stacked_profile(xxxx, yyyy, xxxx_error, yyyy_error, wed4, background):#
                      linewidth=0, marker='o', markersize=3, alpha=0.95,
                      elinewidth=1, capsize=0, capthick=0,
                      color=clr, ecolor=clr,
-                    # label='Stacked image',
+                     label='Stacked image',
                    #  label=lbl, 
                      zorder=1)
 
